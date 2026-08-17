@@ -6,6 +6,7 @@
 /core/.env
 /core/.env.backup
 /core/.env.production
+/assets/admin/push_config.json
 
 # Laravel storage & cache
 /core/storage/app/backups/*
