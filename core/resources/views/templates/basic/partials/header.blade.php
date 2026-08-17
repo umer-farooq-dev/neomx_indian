@@ -9,14 +9,14 @@
                         <span class="menu-toggle"></span>
                     </button>
                     <div class="collapse navbar-collapse mt-lg-0 mt-3" id="navbarSupportedContent">
-                        <ul class="navbar-nav main-menu me-auto" id="linkItem">
+                        <ul class="navbar-nav main-menu mx-xl-auto" id="linkItem">
                             <li><a class="{{ menuActive('home') }}" href="{{ route('home') }}">@lang('Home')</a>
                             </li>
-                            <li><a href="#about">@lang('About')</a></li>
-                            <li><a href="#plan">@lang('Plan')</a></li>
-                            <li><a href="#feature">@lang('Feature')</a></li>
-                            <li><a href="#faq">@lang('Faq')</a></li>
-                            <li><a href="#gateway">@lang('Gateway')</a></li>
+                            <li><a href="#plan">@lang('Investment Plans')</a></li>
+                            <li><a href="#how-it-works">@lang('How It Works')</a></li>
+                            <li><a href="#referral">@lang('Referral')</a></li>
+                            <li><a href="#faq">@lang('FAQ')</a></li>
+                            <li><a href="#about">@lang('About Us')</a></li>
                             @php
                                 $pages = App\Models\Page::where('tempname', $activeTemplate)
                                     ->where('is_default', Status::NO)
@@ -39,21 +39,21 @@
                         <div class="nav-right">
 
                             @auth
-                                <a class="btn btn-sm btn--base me-3 btn--capsule px-3" href="{{ route('user.home') }}">
+                                <a class="nx-navbtn nx-navbtn--solid me-3" href="{{ route('user.home') }}">
                                     @lang('Dashboard')
                                 </a>
 
                                 @if (request()->routeIs('user.authorization'))
-                                    <button class="btn btn-sm btn--base me-3 btn--capsule px-3" data-bs-toggle="modal" data-bs-target="#ConfirmationModal"
+                                    <button class="nx-navbtn nx-navbtn--outline me-3" data-bs-toggle="modal" data-bs-target="#ConfirmationModal"
                                         type="button">@lang('Logout')
                                     </button>
                                 @endif
                             @else
-                                <a class="btn btn-sm btn--base me-3 btn--capsule px-3" data-bs-toggle="modal" data-bs-target="#loginModal"
+                                <a class="nx-navbtn nx-navbtn--outline me-2" data-bs-toggle="modal" data-bs-target="#loginModal"
                                     href="#0">@lang('Login')</a>
 
-                                <a class="fs--14px me-3 text-white registerBtn" id="open-registration-modal" data-bs-toggle="modal"
-                                    data-bs-target="#registerModal" href="#0">@lang('Register')</a>
+                                <a class="nx-navbtn nx-navbtn--solid me-3 registerBtn" id="open-registration-modal" data-bs-toggle="modal"
+                                    data-bs-target="#registerModal" href="#0">@lang('Register Now')</a>
                                 <!-- Button trigger modal -->
 
                             @endauth

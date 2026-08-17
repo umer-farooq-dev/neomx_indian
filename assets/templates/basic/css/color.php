@@ -31,6 +31,10 @@ if (!$secondColor or !checkhexcolor2($secondColor)) {
 }
 ?>
 
+:root {
+    --brand: <?php echo $color; ?>;
+    --brand-2: <?php echo $secondColor; ?>;
+}
 
 .overview-item::after {
 background: <?php echo $color; ?>;
@@ -46,11 +50,11 @@ background: <?php echo $color; ?>;
 color: <?php echo $color; ?> !important;
 }
 
-.btn--base:hover, .scroll-to-top, .preloader .preloader-container .animated-preloader, .footer, .header, .list-group-item {
+.btn--base:hover, .scroll-to-top, .preloader .preloader-container .animated-preloader, .list-group-item {
 background-color: <?php echo $secondColor; ?>;
 }
 
-.package-card, .custom--nav-tabs .nav-item .nav-link, .custom--nav-tabs .nav-item .nav-link.active, .custom--accordion .accordion-item, .testimonial-item, .contact-info-card:hover, .form--control, .modal .modal-content, .custom--card, .testimonial-item, .feature-card:hover, .form--control:focus, .member-card, .pagination .page-item .page-link:hover{
+.custom--nav-tabs .nav-item .nav-link, .custom--nav-tabs .nav-item .nav-link.active, .custom--accordion .accordion-item, .contact-info-card:hover, .form--control, .modal .modal-content, .custom--card, .feature-card:hover, .form--control:focus, .pagination .page-item .page-link:hover{
 border-color: <?php echo $color; ?> !important;
 }
 
@@ -64,7 +68,7 @@ border: none;
 
 
 .feature-card, .overview-wrapper, .info-card__icon, .package-card, .how-work-card__step, .subscribe-wrapper, .member-card, .modal .modal-content, .contact-info i{
-box-shadow: inset 0 0 10px <?php echo $color; ?>d9 !important;
+box-shadow: 0 20px 45px -20px rgba(0,0,0,.55) !important;
 }
 
 

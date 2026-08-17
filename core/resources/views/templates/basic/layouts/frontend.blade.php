@@ -35,7 +35,7 @@
 
             //Start-Id-Wise-Route-set
             let currentRoute = '{{ Route::currentRouteName() }}'
-            let sectionArray = ['#about', '#plan', '#feature', '#faq', '#gateway'];
+            let sectionArray = ['#about', '#plan', '#how-it-works', '#referral', '#faq'];
             if (currentRoute != 'home') {
                 let links = $('#linkItem a');
                 links.on('click', function() {
