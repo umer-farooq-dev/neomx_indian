@@ -1,0 +1,1 @@
+var firebaseConfig = {"apiKey":"AIzaSyAVvzy43rax4HnJ7BaCEzQgytsp01H7Xo4","authDomain":"boramob-867be.firebaseapp.com","projectId":"boramob-867be","storageBucket":"boramob-867be.firebasestorage.app","messagingSenderId":"64763677240","appId":"1:64763677240:web:fc3bb885c45b0dfe02b4cd","measurementId":"G-QCH6NQ3464"}

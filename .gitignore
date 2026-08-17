@@ -1,0 +1,35 @@
+# Dependencies
+/core/vendor/
+/core/node_modules/
+
+# Environment / secrets
+/core/.env
+/core/.env.backup
+/core/.env.production
+
+# Laravel storage & cache
+/core/storage/app/backups/*
+!/core/storage/app/backups/.gitkeep
+/core/storage/framework/cache/data/*
+!/core/storage/framework/cache/data/.gitkeep
+/core/storage/framework/sessions/*
+!/core/storage/framework/sessions/.gitkeep
+/core/storage/framework/testing/*
+!/core/storage/framework/testing/.gitkeep
+/core/storage/framework/views/*
+!/core/storage/framework/views/.gitkeep
+/core/storage/logs/*
+!/core/storage/logs/.gitkeep
+/core/bootstrap/cache/*.php
+
+# IDE / OS
+/.idea
+/.vscode
+.DS_Store
+Thumbs.db
+
+# Misc
+/core/.phpunit.result.cache
+/core/Homestead.json
+/core/Homestead.yaml
+/core/auth.json
