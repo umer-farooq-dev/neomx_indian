@@ -216,4 +216,41 @@
             </div>
         </div>
     @endif
+
+    @if ($user->kv == Status::KYC_UNVERIFIED)
+        <div class="modal fade" id="kycRequiredModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">@lang('Complete Your KYC')</h5>
+                        <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"><i
+                                class="las la-times"></i></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>
+                            @if ($user->kyc_rejection_reason)
+                                @lang('Your KYC documents were rejected. Please resubmit your information to unlock investments and withdrawals.')
+                            @else
+                                @lang('Please complete your KYC verification to unlock investments and withdrawals.')
+                            @endif
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="{{ route('user.kyc.form') }}" class="btn btn--base w-100">@lang('Complete KYC')</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @push('script')
+            <script>
+                (function($) {
+                    "use strict";
+                    $(window).on('load', function() {
+                        $('#kycRequiredModal').modal('show');
+                    });
+                })(jQuery);
+            </script>
+        @endpush
+    @endif
 @endsection

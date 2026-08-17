@@ -84,7 +84,9 @@ Route::middleware('auth')->name('user.')->group(function () {
                 //Plans
                 Route::get('/plans', 'plans')->name('plans');
 
-                Route::post('/investment', 'investment')->name('investment');
+                Route::middleware('kyc')->group(function () {
+                    Route::post('/investment', 'investment')->name('investment');
+                });
                 Route::get('/investment/log', 'investmentLog')->name('investment.log');
 
                 Route::get('referrals', 'referrals')->name('referrals');
