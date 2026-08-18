@@ -661,73 +661,119 @@ body.nx-dash .alert {
     border-radius: 12px;
 }
 
-/* ---------------- deposit: plan picker ---------------- */
-.nxd-step-label {
-    margin: 0 0 .75rem;
-    font-size: .72rem;
+/* ---------------- deposit: plan choice ---------------- */
+.nxd-plan-hint {
+    margin: 0 0 1.2rem;
+    font-size: .86rem;
+    color: var(--nxd-dim);
+}
+
+.nxd-chosen-plan {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: .9rem 1.1rem;
+    border-radius: 12px;
+    border: 1px dashed var(--nxd-line);
+    background: var(--nxd-surface-2);
+}
+
+.nxd-chosen-plan.is-set {
+    border-style: solid;
+    border-color: color-mix(in srgb, var(--nxd-teal) 45%, transparent);
+}
+
+.nxd-chosen-plan__label {
+    display: block;
+    font-size: .68rem;
     font-weight: 800;
     letter-spacing: .12em;
     text-transform: uppercase;
-    color: var(--nxd-teal);
+    color: var(--nxd-dim);
 }
 
-.nxd-plan-picker {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: .7rem;
-}
-
-@media (max-width: 991px) {
-    .nxd-plan-picker { grid-template-columns: repeat(3, 1fr); }
-}
-
-@media (max-width: 575px) {
-    .nxd-plan-picker { grid-template-columns: repeat(2, 1fr); }
-}
-
-.nxd-plan-opt {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: .15rem;
-    padding: .9rem .6rem;
-    border-radius: 12px;
-    border: 1px solid var(--nxd-line);
-    background: var(--nxd-surface-2);
-    cursor: pointer;
-    text-align: center;
-    transition: border-color .25s ease, transform .25s var(--nxd-ease), background .25s ease;
-}
-
-.nxd-plan-opt:hover {
-    transform: translateY(-3px);
-    border-color: color-mix(in srgb, var(--nxd-teal) 40%, transparent);
-}
-
-.nxd-plan-opt.is-active {
-    border-color: var(--nxd-teal);
-    background: color-mix(in srgb, var(--nxd-teal) 12%, var(--nxd-surface-2));
-    box-shadow: 0 0 0 3px rgba(23, 224, 195, .12);
-}
-
-.nxd-plan-opt__name {
-    font-size: .78rem;
+.nxd-chosen-plan__name {
+    display: block;
+    margin-top: .15rem;
+    font-size: 1.05rem;
     font-weight: 700;
     color: #fff;
-    text-transform: uppercase;
-    letter-spacing: .04em;
 }
 
-.nxd-plan-opt__amount {
-    font-size: 1.05rem;
-    font-weight: 800;
+.nxd-chosen-plan.is-set .nxd-chosen-plan__name {
     color: var(--nxd-teal);
-    line-height: 1.2;
 }
 
-.nxd-plan-opt__meta {
-    font-size: .7rem;
-    color: var(--nxd-dim);
+.nxd-chosen-plan__change {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .5rem 1rem;
+    border-radius: 10px;
+    font-size: .82rem;
+    font-weight: 700;
+    color: #fff;
+    background: rgba(255, 255, 255, .06);
+    border: 1px solid var(--nxd-line);
+    transition: border-color .25s ease, color .25s ease, transform .25s var(--nxd-ease);
+}
+
+.nxd-chosen-plan__change:hover {
+    border-color: var(--nxd-teal);
+    color: var(--nxd-teal);
+    transform: translateY(-2px);
+}
+
+.nxd-plan.is-selected {
+    border-color: var(--tier);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tier) 25%, transparent);
+}
+
+
+/* ---------------- modals inside the panel ---------------- */
+body.nx-dash .modal-content {
+    background: linear-gradient(180deg, var(--nxd-surface-2) 0%, var(--nxd-surface) 100%) !important;
+    border: 1px solid rgba(23, 224, 195, .26) !important;
+    border-radius: 18px;
+    box-shadow: 0 40px 80px -30px rgba(0, 0, 0, .85), 0 0 60px -30px rgba(23, 224, 195, .45);
+}
+
+body.nx-dash .modal-header {
+    border-bottom: 1px solid var(--nxd-line);
+    padding: 1.1rem 1.4rem;
+}
+
+body.nx-dash .modal-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #fff;
+}
+
+body.nx-dash .modal-body {
+    padding: 1.4rem;
+}
+
+body.nx-dash .modal .btn-close {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .07);
+    border: 1px solid var(--nxd-line);
+    opacity: 1;
+    filter: invert(1) grayscale(1) brightness(2);
+    transition: background .25s ease, border-color .25s ease;
+}
+
+body.nx-dash .modal .btn-close:hover {
+    background: rgba(255, 90, 90, .25);
+    border-color: rgba(255, 90, 90, .45);
+}
+
+/* inside the picker the button is the card's main action, so give it full width */
+body.nx-dash .modal .nxd-plan__btn {
+    width: 100%;
 }
 
 /* The deposit screen ships with the stock template's chrome, which color.php

@@ -13,38 +13,18 @@
                                 <h5 class="payment-card-title">@lang('Deposit')</h5>
                             </div>
 
-                            <div class="col-12">
-                                <p class="nxd-step-label">@lang('Step 1 — Choose your plan')</p>
-                                @if ($plans->isEmpty())
-                                    <div class="alert alert--warning">@lang('No investment plans are available right now. Please check back later.')</div>
-                                @else
-                                    <div class="nxd-plan-picker">
-                                        @foreach ($plans as $plan)
-                                            @php
-                                                $isFixed = $plan->interest_type == Status::FIXED;
-                                            @endphp
-                                            <label class="nxd-plan-opt" for="plan{{ $plan->id }}">
-                                                <input type="radio" name="plan_id" id="plan{{ $plan->id }}" hidden
-                                                    class="plan-input" value="{{ $plan->id }}"
-                                                    data-min="{{ getAmount($plan->min_amount) }}"
-                                                    data-max="{{ getAmount($plan->max_amount) }}"
-                                                    @checked(old('plan_id') == $plan->id)>
-                                                <span class="nxd-plan-opt__name">{{ __($plan->name) }}</span>
-                                                <span class="nxd-plan-opt__amount">
-                                                    {{ gs('cur_sym') }}{{ showAmount($plan->min_amount, 0, currencyFormat: false) }}
-                                                </span>
-                                                <span class="nxd-plan-opt__meta">
-                                                    @lang('Daily')
-                                                    {{ $isFixed ? gs('cur_sym') : '' }}{{ showAmount($plan->interest, 0, currencyFormat: false) }}{{ $isFixed ? '' : '%' }}
-                                                </span>
-                                            </label>
-                                        @endforeach
-                                    </div>
-                                @endif
-                            </div>
+                            <input type="hidden" name="plan_id" class="plan-id" value="{{ old('plan_id') }}">
 
                             <div class="col-12">
-                                <p class="nxd-step-label">@lang('Step 2 — Amount & payment method')</p>
+                                <div class="nxd-chosen-plan">
+                                    <div>
+                                        <span class="nxd-chosen-plan__label">@lang('Selected Plan')</span>
+                                        <span class="nxd-chosen-plan__name">@lang('None selected')</span>
+                                    </div>
+                                    <button type="button" class="nxd-chosen-plan__change" data-bs-toggle="modal" data-bs-target="#choosePlanModal">
+                                        <i class="las la-exchange-alt"></i> @lang('Change Plan')
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="col-lg-6">
@@ -179,6 +159,29 @@
         </div>
     </div>
 </section>
+
+<div class="modal fade" id="choosePlanModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@lang('Choose Your Plan')</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="@lang('Close')"></button>
+            </div>
+            <div class="modal-body">
+                @if ($plans->isEmpty())
+                    <div class="alert alert--warning mb-0">
+                        @lang('No investment plans are available right now. Please check back later.')
+                    </div>
+                @else
+                    <p class="nxd-plan-hint">@lang('Pick the plan you want to invest in, then continue to payment.')</p>
+                    <div class="row">
+                        @include($activeTemplate . 'partials.plan_choice_cards', ['plans' => $plans])
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 @push('style')
 <style>
@@ -219,14 +222,22 @@
                 calculation();
             });
 
+            const planModal = document.getElementById('choosePlanModal');
+            const planModalInstance = planModal ? new bootstrap.Modal(planModal) : null;
+
             // picking a plan pre-fills the amount with its entry price and pins
             // the field to that plan's range
-            $('.plan-input').on('change', function() {
-                planMin = parseFloat($(this).data('min'));
-                planMax = parseFloat($(this).data('max'));
+            $('.choose-plan').on('click', function() {
+                let $btn = $(this);
+                planMin = parseFloat($btn.data('min'));
+                planMax = parseFloat($btn.data('max'));
 
-                $('.nxd-plan-opt').removeClass('is-active');
-                $(this).closest('.nxd-plan-opt').addClass('is-active');
+                $('.plan-id').val($btn.data('id'));
+                $('.nxd-chosen-plan__name').text($btn.data('name'));
+                $('.nxd-chosen-plan').addClass('is-set');
+
+                $('.nxd-plan').removeClass('is-selected');
+                $btn.closest('.nxd-plan').addClass('is-selected');
 
                 if (isNaN(amount) || amount < planMin || amount > planMax) {
                     amount = planMin;
@@ -235,7 +246,16 @@
 
                 $('.plan-range').text('{{ gs('cur_sym') }}' + planMin + ' - {{ gs('cur_sym') }}' + planMax);
                 calculation();
+
+                if (planModalInstance) planModalInstance.hide();
             });
+
+            // the plan is the first decision, so ask for it as soon as the page opens
+            @if ($plans->isNotEmpty())
+                if (planModalInstance && !$('.plan-id').val()) {
+                    planModalInstance.show();
+                }
+            @endif
 
             $('.gateway-input').on('change', function(e) {
                 gatewayChange();
@@ -256,7 +276,8 @@
             }
 
             gatewayChange();
-            $('.plan-input:checked').trigger('change');
+            // restore the plan after a validation bounce
+            $('.choose-plan[data-id="' + $('.plan-id').val() + '"]').trigger('click');
 
             $(".more-gateway-option").on("click", function(e) {
                 let paymentList = $(".gateway-option-list");
@@ -290,7 +311,7 @@
                 $(".gateway-currency").text(gateway.currency);
 
                 let withinGateway = amount >= Number(gateway.min_amount) && amount <= Number(gateway.max_amount);
-                let planChosen = $('.plan-input:checked').length > 0;
+                let planChosen = !!$('.plan-id').val();
                 let withinPlan = planChosen && amount >= planMin && amount <= planMax;
 
                 if (withinGateway && withinPlan) {
