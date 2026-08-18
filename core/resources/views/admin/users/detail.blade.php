@@ -187,7 +187,14 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-12">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>@lang('Date of Birth')</label>
+                                    <input class="form-control" type="date" name="dob" value="{{ @$user->dob }}">
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
                                 <div class="form-group ">
                                     <label>@lang('Address')</label>
                                     <input class="form-control" type="text" name="address" value="{{@$user->address}}">

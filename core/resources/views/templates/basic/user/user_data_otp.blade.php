@@ -7,16 +7,15 @@
             <div class="col-lg-8 ps-lg-5">
                 <div class="contact-wrapper rounded-3">
                     <h4 class="mb-3">@lang('Complete Your Profile')</h4>
-                    <p class="text-white mb-4">@lang('You logged in with mobile OTP. Set a username, email and password below so you can also log in without OTP next time.')</p>
+                    <p class="text-white mb-4">@lang('Your mobile number is verified. Fill in the details below to finish setting up your account — you will also be able to log in with your email and password next time.')</p>
                     <form method="POST" action="{{ route('user.data.submit') }}">
                         @csrf
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label class="form-label">@lang('Username')</label>
-                                    <input type="text" class="form-control form--control checkUser" name="username"
-                                        value="{{ old('username', $user->username) }}">
-                                    <small class="text--danger usernameExist"></small>
+                                    <label class="form-label">@lang('Full Name')</label>
+                                    <input type="text" class="form-control form--control" name="fullname"
+                                        value="{{ old('fullname', trim($user->firstname . ' ' . $user->lastname)) }}" required>
                                 </div>
                             </div>
                             <div class="col-md-12">
@@ -34,6 +33,16 @@
                             <div class="form-group col-sm-6">
                                 <label class="form-label">@lang('Confirm Password')</label>
                                 <input type="password" class="form-control form--control" name="password_confirmation" required>
+                            </div>
+                            <div class="form-group col-sm-6">
+                                <label class="form-label">@lang('Date of Birth')</label>
+                                <input type="date" class="form-control form--control" name="dob"
+                                    value="{{ old('dob') }}" max="{{ now()->subYears(18)->toDateString() }}" required>
+                            </div>
+                            <div class="form-group col-sm-6">
+                                <label class="form-label">@lang('Referral Code') <span class="text-white-50">(@lang('optional'))</span></label>
+                                <input type="text" class="form-control form--control" name="referBy"
+                                    value="{{ old('referBy') }}" @disabled($user->ref_by) placeholder="@lang('Enter referral code')">
                             </div>
                         </div>
                         <div class="form-group">

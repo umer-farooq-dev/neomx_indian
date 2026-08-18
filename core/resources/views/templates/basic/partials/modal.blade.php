@@ -111,27 +111,37 @@
                 <form class="account-form registration-form verify-gcaptcha2" action="{{ route('user.register') }}" method="post">
                     @csrf
                     <div class="row">
-                        @if (session()->get('reference') != null)
-                            <div class="col-lg-12 mb-3">
-                                <label>@lang('Reference By')</label>
-                                <input type="text" name="referBy" id="referenceBy" class="form--control"
-                                    value="{{ session()->get('reference') }}" readonly>
-                            </div>
-                        @endif
-
-                        <div class="col-lg-6">
+                        <div class="col-lg-12">
                             <div class="form-group">
-                                <label>{{ __('First Name') }}</label>
-                                <input type="text" class="form--control " name="firstname" value="{{ old('firstname') }}" required>
-
+                                <label>@lang('Full Name')</label>
+                                <input type="text" class="form--control" name="fullname" value="{{ old('fullname') }}" required>
                             </div>
                         </div>
 
                         <div class="col-lg-6">
                             <div class="form-group">
-                                <label>{{ __('Last Name') }}</label>
-                                <input type="text" class="form--control " name="lastname" value="{{ old('lastname') }}" required>
+                                <label>@lang('Mobile Number')</label>
+                                <div class="input-group">
+                                    <span class="input-group-text reg-mobile-code">+</span>
+                                    <input type="hidden" name="mobile_code" value="{{ old('mobile_code') }}">
+                                    <input type="hidden" name="country_code" value="{{ old('country_code') }}">
+                                    <input type="number" name="mobile" value="{{ old('mobile') }}" class="form--control checkUser" required>
+                                </div>
+                                <small class="text--danger mobileExist"></small>
+                            </div>
+                        </div>
 
+                        <div class="col-lg-6">
+                            <div class="form-group select2-parent">
+                                <label>@lang('Country')</label>
+                                <select name="country" class="form--control reg-country" required>
+                                    @foreach ($countries as $key => $country)
+                                        <option data-mobile_code="{{ $country->dial_code }}" data-code="{{ $key }}"
+                                            value="{{ $country->country }}" @selected(old('country') == $country->country)>
+                                            {{ __($country->country) }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
 
@@ -142,7 +152,6 @@
                                     required>
                             </div>
                         </div>
-
 
                         <div class="col-lg-6">
                             <div class="form-group">
@@ -163,25 +172,42 @@
                             </div>
                         </div>
 
+                        <div class="col-lg-6">
+                            <div class="form-group">
+                                <label>@lang('Date of Birth')</label>
+                                <input type="date" class="form--control" name="dob" value="{{ old('dob') }}"
+                                    max="{{ now()->subYears(18)->toDateString() }}" required>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <div class="form-group">
+                                <label>@lang('Referral Code') <span class="text-white-50">(@lang('optional'))</span></label>
+                                <input type="text" name="referBy" id="referenceBy" class="form--control"
+                                    value="{{ old('referBy', session()->get('reference')) }}"
+                                    placeholder="@lang('Enter referral code')">
+                            </div>
+                        </div>
+
 
                         <x-captcha />
 
 
                         @if (gs('agree'))
+                            @php
+                                // the two consents are recorded separately, so each policy page
+                                // the admin has published gets its own checkbox
+                                $policyList = $policyPages->values();
+                            @endphp
                             <div class="col-lg-12">
-                                <div class="form-group">
-                                    <input type="checkbox" id="agree" @checked(old('agree')) name="agree" required>
-                                    <label for="agree">@lang('I agree with') </label>
-                                    <span>
-                                        @foreach ($policyPages as $policy)
-                                            <a href="{{ route('policy.pages', $policy->slug) }}">{{ __($policy->data_values->title) }}</a>
-                                            @if (!$loop->last)
-                                                ,
-                                            @endif
-                                        @endforeach
-                                    </span>
-
-                                </div>
+                                @foreach ($policyList as $i => $policy)
+                                    <div class="form-group mb-2">
+                                        <input type="checkbox" id="agree{{ $i }}" name="agree[]"
+                                            value="{{ $policy->slug }}" @checked(is_array(old('agree')) && in_array($policy->slug, old('agree'))) required>
+                                        <label for="agree{{ $i }}">@lang('I agree with the')</label>
+                                        <a href="{{ route('policy.pages', $policy->slug) }}" target="_blank">{{ __($policy->data_values->title) }}</a>
+                                    </div>
+                                @endforeach
                             </div>
                         @endif
 
@@ -678,6 +704,24 @@
                 $('#existModalCenter').modal('hide');
             })
 
+
+            // keep the hidden dial/country codes in step with the country picker
+            function syncRegCountry() {
+                let $opt = $('.reg-country option:selected');
+                $('input[name=mobile_code]').val($opt.data('mobile_code'));
+                $('input[name=country_code]').val($opt.data('code'));
+                $('.reg-mobile-code').text('+' + $opt.data('mobile_code'));
+            }
+
+            if ($('.reg-country').length) {
+                @if ($mobileCode)
+                    if (!$('.reg-country option[data-code="{{ $mobileCode }}"]:selected').length && !'{{ old('country') }}') {
+                        $('.reg-country option[data-code="{{ $mobileCode }}"]').first().prop('selected', true);
+                    }
+                @endif
+                syncRegCountry();
+                $('.reg-country').on('change', syncRegCountry);
+            }
 
             let anyError = '{{ @$errors->any() }}';
 

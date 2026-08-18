@@ -171,6 +171,7 @@ class ManageUsersController extends Controller
             'email'     => 'required|email|string|max:40|unique:users,email,' . $user->id,
             'mobile'    => 'required|string|max:40',
             'country'   => 'required|in:' . $countries,
+            'dob'       => 'nullable|date',
         ]);
 
         $exists = User::where('mobile', $request->mobile)->where('dial_code', $dialCode)->where('id', '!=', $user->id)->exists();
@@ -184,6 +185,7 @@ class ManageUsersController extends Controller
         $user->lastname  = $request->lastname;
         $user->email     = $request->email;
 
+        $user->dob          = $request->dob;
         $user->address      = $request->address;
         $user->city         = $request->city;
         $user->state        = $request->state;

@@ -238,21 +238,33 @@ class UserController extends Controller
         }
 
         $request->validate([
-            'username' => 'required|min:6|unique:users,username,' . $user->id,
+            'fullname' => 'required|string|max:80',
             'email'    => 'required|string|email|unique:users,email,' . $user->id,
             'password' => ['required', 'confirmed', $passwordValidation],
+            'dob'      => 'required|date|before:' . now()->subYears(18)->toDateString(),
+            'referBy'  => 'nullable|string|exists:users,username',
+        ], [
+            'dob.before'     => 'You must be at least 18 years old to register',
+            'referBy.exists' => 'This referral code does not belong to any member',
         ]);
 
-        if (preg_match("/[^a-z0-9_]/", trim($request->username))) {
-            $notify[] = ['info', 'Username can contain only small letters, numbers and underscore.'];
-            $notify[] = ['error', 'No special character, space or capital letters in username.'];
-            return back()->withNotify($notify)->withInput($request->except('password', 'password_confirmation'));
+        $fullname = trim(preg_replace('/\s+/', ' ', $request->fullname));
+        $parts    = explode(' ', $fullname, 2);
+
+        // a referrer captured at OTP time (from a referral link) is never overwritten
+        if (!$user->ref_by && $request->referBy) {
+            $referUser = User::where('username', $request->referBy)->first();
+            if ($referUser && $referUser->id != $user->id) {
+                $user->ref_by = $referUser->id;
+            }
         }
 
-        $user->username = $request->username;
-        $user->email    = strtolower($request->email);
-        $user->password = Hash::make($request->password);
-        $user->ev       = gs('ev') ? Status::NO : Status::YES;
+        $user->firstname = $parts[0];
+        $user->lastname  = $parts[1] ?? '';
+        $user->email     = strtolower($request->email);
+        $user->password  = Hash::make($request->password);
+        $user->dob       = $request->dob;
+        $user->ev        = gs('ev') ? Status::NO : Status::YES;
         $user->profile_complete = Status::YES;
         $user->save();
 

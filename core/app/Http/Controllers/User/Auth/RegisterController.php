@@ -13,6 +13,7 @@ use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 class RegisterController extends Controller
@@ -44,22 +45,37 @@ class RegisterController extends Controller
             $passwordValidation = $passwordValidation->mixedCase()->numbers()->symbols()->uncompromised();
         }
 
+        $countryData  = (array) json_decode(file_get_contents(resource_path('views/partials/country.json')));
+        $countryCodes = implode(',', array_keys($countryData));
+        $mobileCodes  = implode(',', array_column($countryData, 'dial_code'));
+        $countries    = implode(',', array_column($countryData, 'country'));
+
         $agree = 'nullable';
         if (gs('agree')) {
-            $agree = 'required';
+            // one box per published policy page, so every consent is explicit.
+            // "required" matters: without it an absent field skips the rules entirely.
+            $policyCount = getContent('policy_pages.element', false, null, true)->count();
+            $agree = 'required|array|size:' . $policyCount;
         }
         \Session::flash('modal', '#registerModal');
 
-        $validate     = Validator::make($data, [
-            'firstname' => 'required',
-            'lastname'  => 'required',
-            'email'     => 'required|string|email|unique:users',
-            'password'  => ['required', 'confirmed', $passwordValidation],
-            'captcha'   => 'sometimes|required',
-            'agree'     => $agree
-        ],[
-            'firstname.required'=>'The first name field is required',
-            'lastname.required'=>'The last name field is required'
+        $validate = Validator::make($data, [
+            'fullname'     => 'required|string|max:80',
+            'country_code' => 'required|in:' . $countryCodes,
+            'country'      => 'required|in:' . $countries,
+            'mobile_code'  => 'required|in:' . $mobileCodes,
+            'mobile'       => ['required', 'regex:/^([0-9]*)$/', Rule::unique('users')->where('dial_code', @$data['mobile_code'])],
+            'email'        => 'required|string|email|unique:users',
+            'password'     => ['required', 'confirmed', $passwordValidation],
+            'dob'          => 'required|date|before:' . now()->subYears(18)->toDateString(),
+            'referBy'      => 'nullable|string|exists:users,username',
+            'captcha'      => 'sometimes|required',
+            'agree'        => $agree,
+        ], [
+            'fullname.required' => 'The full name field is required',
+            'dob.before'        => 'You must be at least 18 years old to register',
+            'referBy.exists'    => 'This referral code does not belong to any member',
+            'agree.size'        => 'You must accept all the policies to continue',
         ]);
 
         return $validate;
@@ -92,27 +108,44 @@ class RegisterController extends Controller
 
 
 
+    protected function generateUsername()
+    {
+        do {
+            $username = 'user' . getNumber(6);
+        } while (User::where('username', $username)->exists());
+        return $username;
+    }
+
     protected function create(array $data)
     {
-        $referBy = session()->get('reference');
-        if ($referBy) {
-            $referUser = User::where('username', $referBy)->first();
-        } else {
-            $referUser = null;
-        }
+        // a typed referral code wins over one carried in from a referral link
+        $referBy   = $data['referBy'] ?? session()->get('reference');
+        $referUser = $referBy ? User::where('username', $referBy)->first() : null;
+
+        $fullname = trim(preg_replace('/\s+/', ' ', $data['fullname']));
+        $parts    = explode(' ', $fullname, 2);
 
         //User Create
-        $user            = new User();
-        $user->email     = strtolower($data['email']);
-        $user->firstname = $data['firstname'];
-        $user->lastname  = $data['lastname'];
-        $user->password  = Hash::make($data['password']);
-        $user->ref_by    = $referUser ? $referUser->id : 0;
+        $user               = new User();
+        $user->email        = strtolower($data['email']);
+        $user->firstname    = $parts[0];
+        $user->lastname     = $parts[1] ?? '';
+        $user->username     = $this->generateUsername();
+        $user->password     = Hash::make($data['password']);
+        $user->dob          = $data['dob'];
+        $user->mobile       = $data['mobile'];
+        $user->dial_code    = $data['mobile_code'];
+        $user->country_code = $data['country_code'];
+        $user->country_name = $data['country'];
+        $user->ref_by       = $referUser ? $referUser->id : 0;
         $user->kv = gs('kv') ? Status::NO : Status::YES;
         $user->ev = gs('ev') ? Status::NO : Status::YES;
-        $user->sv = gs('sv') ? Status::NO : Status::YES;
+        // the number is captured on the form, so it always has to be proven by OTP
+        $user->sv = Status::NO;
         $user->ts = Status::DISABLE;
         $user->tv = Status::ENABLE;
+        // every detail is collected here, so there is no follow-up profile step
+        $user->profile_complete = Status::YES;
         $user->save();
 
         $adminNotification            = new AdminNotification();
