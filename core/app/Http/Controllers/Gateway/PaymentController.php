@@ -19,20 +19,35 @@ class PaymentController extends Controller
         $gatewayCurrency = GatewayCurrency::whereHas('method', function ($gate) {
             $gate->where('status', Status::ENABLE);
         })->with('method')->orderby('name')->get();
+        $plans     = \App\Models\Plan::where('status', Status::ENABLE)->orderBy('min_amount')->get();
         $pageTitle = 'Deposit Methods';
-        return view('Template::user.payment.deposit', compact('gatewayCurrency', 'pageTitle'));
+        return view('Template::user.payment.deposit', compact('gatewayCurrency', 'plans', 'pageTitle'));
     }
 
     public function depositInsert(Request $request)
     {
         $request->validate([
+            'plan_id'  => 'required|integer',
             'amount'   => 'required|numeric|gt:0',
             'gateway'  => 'required',
             'currency' => 'required',
         ]);
 
-
         $user = auth()->user();
+
+        $plan = \App\Models\Plan::where('id', $request->plan_id)->where('status', Status::ENABLE)->first();
+        if (!$plan) {
+            $notify[] = ['error', 'Invalid plan selected'];
+            return back()->withNotify($notify);
+        }
+
+        // the deposit opens this plan once it clears, so it has to satisfy the
+        // plan's own limits, not just the gateway's
+        if ($plan->min_amount > $request->amount || $plan->max_amount < $request->amount) {
+            $notify[] = ['error', 'Please follow the investment limit for ' . $plan->name];
+            return back()->withNotify($notify);
+        }
+
         $gate = GatewayCurrency::whereHas('method', function ($gate) {
             $gate->where('status', Status::ENABLE);
         })->where('method_code', $request->gateway)->where('currency', $request->currency)->first();
@@ -52,6 +67,7 @@ class PaymentController extends Controller
 
         $data                  = new Deposit();
         $data->user_id         = $user->id;
+        $data->plan_id         = $plan->id;
         $data->method_code     = $gate->method_code;
         $data->method_currency = strtoupper($gate->currency);
         $data->amount          = $request->amount;
@@ -139,6 +155,8 @@ class PaymentController extends Controller
                 \App\Lib\SpinService::evaluateReferralRules($directReferrer);
             }
 
+            self::openSelectedPlan($deposit, $user);
+
             if (!$isManual) {
                 $adminNotification            = new AdminNotification();
                 $adminNotification->user_id   = $user->id;
@@ -158,6 +176,33 @@ class PaymentController extends Controller
                 'post_balance'    => showAmount($user->balance)
             ]);
         }
+    }
+
+    /**
+     * A deposit carries the plan the user picked on the form, so the investment
+     * is opened for them as soon as the money lands. Deposits made before this
+     * flow existed carry no plan and simply top up the wallet.
+     */
+    protected static function openSelectedPlan($deposit, $user)
+    {
+        if (!$deposit->plan_id) {
+            return;
+        }
+
+        $plan = \App\Models\Plan::where('id', $deposit->plan_id)->where('status', Status::ENABLE)->first();
+
+        // the plan may have been disabled or edited between request and approval;
+        // the money stays in the wallet so the user can choose again
+        if (!$plan || $plan->min_amount > $deposit->amount || $plan->max_amount < $deposit->amount) {
+            return;
+        }
+
+        $user = $user->fresh();
+        if ($user->balance < $deposit->amount) {
+            return;
+        }
+
+        \App\Lib\InvestmentService::invest($user, $plan, $deposit->amount);
     }
 
     protected static function distributeReferralCommission($depositor, $deposit)

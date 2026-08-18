@@ -124,8 +124,9 @@ Route::middleware('auth')->name('user.')->group(function () {
             });
         });
 
-        // Payment
-        Route::prefix('deposit')->name('deposit.')->controller('Gateway\PaymentController')->group(function () {
+        // Payment — a deposit opens the plan chosen on the form, so it sits
+        // behind the same KYC gate as investing directly from the wallet
+        Route::prefix('deposit')->name('deposit.')->controller('Gateway\PaymentController')->middleware('kyc')->group(function () {
             Route::any('/', 'deposit')->name('index');
             Route::post('insert', 'depositInsert')->name('insert');
             Route::get('confirm', 'depositConfirm')->name('confirm');

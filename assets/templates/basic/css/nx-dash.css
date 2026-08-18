@@ -661,6 +661,122 @@ body.nx-dash .alert {
     border-radius: 12px;
 }
 
+/* ---------------- deposit: plan picker ---------------- */
+.nxd-step-label {
+    margin: 0 0 .75rem;
+    font-size: .72rem;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--nxd-teal);
+}
+
+.nxd-plan-picker {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: .7rem;
+}
+
+@media (max-width: 991px) {
+    .nxd-plan-picker { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 575px) {
+    .nxd-plan-picker { grid-template-columns: repeat(2, 1fr); }
+}
+
+.nxd-plan-opt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .15rem;
+    padding: .9rem .6rem;
+    border-radius: 12px;
+    border: 1px solid var(--nxd-line);
+    background: var(--nxd-surface-2);
+    cursor: pointer;
+    text-align: center;
+    transition: border-color .25s ease, transform .25s var(--nxd-ease), background .25s ease;
+}
+
+.nxd-plan-opt:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--nxd-teal) 40%, transparent);
+}
+
+.nxd-plan-opt.is-active {
+    border-color: var(--nxd-teal);
+    background: color-mix(in srgb, var(--nxd-teal) 12%, var(--nxd-surface-2));
+    box-shadow: 0 0 0 3px rgba(23, 224, 195, .12);
+}
+
+.nxd-plan-opt__name {
+    font-size: .78rem;
+    font-weight: 700;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.nxd-plan-opt__amount {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--nxd-teal);
+    line-height: 1.2;
+}
+
+.nxd-plan-opt__meta {
+    font-size: .7rem;
+    color: var(--nxd-dim);
+}
+
+/* The deposit screen ships with the stock template's chrome, which color.php
+   paints with the brand colour using !important. These overrides carry both a
+   higher specificity and !important so the panel matches the rest of the area. */
+body.nx-dash .gateway-card,
+body.nx-dash .payment-system-list {
+    background-color: var(--nxd-surface) !important;
+    border: 1px solid var(--nxd-line);
+    border-radius: 16px;
+}
+
+body.nx-dash .payment-system-list.is-scrollable {
+    max-height: 320px;
+}
+
+body.nx-dash .payment-card-title {
+    background-color: transparent !important;
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 700;
+    text-align: left;
+    padding: 0;
+    margin: 0;
+}
+
+body.nx-dash .payment-item {
+    background-color: var(--nxd-surface-2) !important;
+    border: 1px solid var(--nxd-line);
+    border-radius: 12px;
+    margin-bottom: .6rem;
+    transition: border-color .25s ease;
+}
+
+body.nx-dash .payment-item:hover {
+    border-color: color-mix(in srgb, var(--nxd-teal) 40%, transparent);
+}
+
+body.nx-dash .payment-item:has(.payment-item__radio:checked) {
+    border-color: var(--nxd-teal);
+    background: color-mix(in srgb, var(--nxd-teal) 10%, var(--nxd-surface-2));
+}
+
+body.nx-dash .deposit-info__input-group-text {
+    background: rgba(255, 255, 255, .05);
+    border: 1px solid var(--nxd-line);
+    color: var(--nxd-dim);
+}
+
 /* the referral link block reused from the public side */
 body.nx-dash .input-group-text.bg--base {
     background: linear-gradient(90deg, var(--nxd-teal), var(--nxd-blue)) !important;

@@ -12,6 +12,41 @@
                             <div class="col-12">
                                 <h5 class="payment-card-title">@lang('Deposit')</h5>
                             </div>
+
+                            <div class="col-12">
+                                <p class="nxd-step-label">@lang('Step 1 — Choose your plan')</p>
+                                @if ($plans->isEmpty())
+                                    <div class="alert alert--warning">@lang('No investment plans are available right now. Please check back later.')</div>
+                                @else
+                                    <div class="nxd-plan-picker">
+                                        @foreach ($plans as $plan)
+                                            @php
+                                                $isFixed = $plan->interest_type == Status::FIXED;
+                                            @endphp
+                                            <label class="nxd-plan-opt" for="plan{{ $plan->id }}">
+                                                <input type="radio" name="plan_id" id="plan{{ $plan->id }}" hidden
+                                                    class="plan-input" value="{{ $plan->id }}"
+                                                    data-min="{{ getAmount($plan->min_amount) }}"
+                                                    data-max="{{ getAmount($plan->max_amount) }}"
+                                                    @checked(old('plan_id') == $plan->id)>
+                                                <span class="nxd-plan-opt__name">{{ __($plan->name) }}</span>
+                                                <span class="nxd-plan-opt__amount">
+                                                    {{ gs('cur_sym') }}{{ showAmount($plan->min_amount, 0, currencyFormat: false) }}
+                                                </span>
+                                                <span class="nxd-plan-opt__meta">
+                                                    @lang('Daily')
+                                                    {{ $isFixed ? gs('cur_sym') : '' }}{{ showAmount($plan->interest, 0, currencyFormat: false) }}{{ $isFixed ? '' : '%' }}
+                                                </span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div class="col-12">
+                                <p class="nxd-step-label">@lang('Step 2 — Amount & payment method')</p>
+                            </div>
+
                             <div class="col-lg-6">
                                 <div class="payment-system-list is-scrollable gateway-option-list">
                                     @foreach ($gatewayCurrency as $data)
@@ -55,10 +90,23 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <p class="plan-warning text--danger small mt-2 d-none">
+                                        @lang('Amount must stay within the selected plan\'s range.')
+                                    </p>
                                     <hr>
                                     <div class="deposit-info">
                                         <div class="deposit-info__title">
-                                            <p class="text has-icon"> @lang('Limit')
+                                            <p class="text has-icon"> @lang('Plan Range')
+                                                <span></span>
+                                            </p>
+                                        </div>
+                                        <div class="deposit-info__input">
+                                            <p class="text"><span class="plan-range">@lang('Select a plan')</span></p>
+                                        </div>
+                                    </div>
+                                    <div class="deposit-info">
+                                        <div class="deposit-info__title">
+                                            <p class="text has-icon"> @lang('Gateway Limit')
                                                 <span></span>
                                             </p>
                                         </div>
@@ -160,13 +208,32 @@
 
             var amount = parseFloat($('.amount').val() || 0);
             var gateway, minAmount, maxAmount;
-
+            var planMin = null,
+                planMax = null;
 
             $('.amount').on('input', function(e) {
                 amount = parseFloat($(this).val());
                 if (!amount) {
                    amount = 0;
                 }
+                calculation();
+            });
+
+            // picking a plan pre-fills the amount with its entry price and pins
+            // the field to that plan's range
+            $('.plan-input').on('change', function() {
+                planMin = parseFloat($(this).data('min'));
+                planMax = parseFloat($(this).data('max'));
+
+                $('.nxd-plan-opt').removeClass('is-active');
+                $(this).closest('.nxd-plan-opt').addClass('is-active');
+
+                if (isNaN(amount) || amount < planMin || amount > planMax) {
+                    amount = planMin;
+                    $('.amount').val(planMin);
+                }
+
+                $('.plan-range').text('{{ gs('cur_sym') }}' + planMin + ' - {{ gs('cur_sym') }}' + planMax);
                 calculation();
             });
 
@@ -189,6 +256,7 @@
             }
 
             gatewayChange();
+            $('.plan-input:checked').trigger('change');
 
             $(".more-gateway-option").on("click", function(e) {
                 let paymentList = $(".gateway-option-list");
@@ -221,11 +289,17 @@
                 $("input[name=currency]").val(gateway.currency);
                 $(".gateway-currency").text(gateway.currency);
 
-                if (amount < Number(gateway.min_amount) || amount > Number(gateway.max_amount)) {
-                    $(".deposit-form button[type=submit]").attr('disabled', true);
-                } else {
+                let withinGateway = amount >= Number(gateway.min_amount) && amount <= Number(gateway.max_amount);
+                let planChosen = $('.plan-input:checked').length > 0;
+                let withinPlan = planChosen && amount >= planMin && amount <= planMax;
+
+                if (withinGateway && withinPlan) {
                     $(".deposit-form button[type=submit]").removeAttr('disabled');
+                } else {
+                    $(".deposit-form button[type=submit]").attr('disabled', true);
                 }
+
+                $('.plan-warning').toggleClass('d-none', !planChosen || withinPlan);
 
                 if (gateway.currency != "{{ gs('cur_text') }}" && gateway.method.crypto != 1) {
                     $('.deposit-form').addClass('adjust-height')

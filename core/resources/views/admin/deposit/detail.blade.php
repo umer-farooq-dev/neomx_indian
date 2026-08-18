@@ -30,6 +30,14 @@
                                 @endif
                             </span>
                         </li>
+                        @if ($deposit->plan_id)
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                @lang('Selected Plan')
+                                <span class="fw-bold">
+                                    {{ __(optional(App\Models\Plan::find($deposit->plan_id))->name ?? 'Plan removed') }}
+                                </span>
+                            </li>
+                        @endif
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             @lang('Amount')
                             <span class="fw-bold">{{ showAmount($deposit->amount) }}</span>

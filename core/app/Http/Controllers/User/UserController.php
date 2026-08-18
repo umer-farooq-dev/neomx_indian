@@ -371,60 +371,7 @@ class UserController extends Controller
             return to_route('user.deposit.index')->withNotify($notify);
         }
 
-        $interest   = 0;
-        $nextReturn = Carbon::now()->addDay(1);
-
-        if ($plan->interest_type == Status::FIXED) {
-            $interest = $plan->interest;
-        } else {
-            $interest = ($request->amount * $plan->interest) / 100;
-        }
-
-        $user->balance -= $request->amount;
-        $user->save();
-
-
-        $newInvest                   = new Investment();
-        $newInvest->trx              = getTrx();
-        $newInvest->plan_id          = $plan->id;
-        $newInvest->user_id          = $user->id;
-        $newInvest->amount           = $request->amount;
-        $newInvest->interest_type    = $plan->interest_type;
-        $newInvest->interest_amount  = $interest;
-        $newInvest->total_return     = $plan->total_return;
-        $newInvest->next_return_date = $nextReturn;
-        $newInvest->status           = Status::RUNNING;
-        $newInvest->save();
-
-        $transaction               = new Transaction();
-        $transaction->user_id      = $user->id;
-        $transaction->amount       = $request->amount;
-        $transaction->post_balance = $user->balance;
-        $transaction->charge       = 0;
-        $transaction->trx_type     = '-';
-        $transaction->remark       = 'invest';
-        $transaction->details      = 'Invest on ' . $plan->name;
-        $transaction->trx          = $newInvest->trx;
-        $transaction->save();
-
-        $adminNotification            = new AdminNotification();
-        $adminNotification->user_id   = $user->id;
-        $adminNotification->title     = 'New Investment In ' . $plan->name . ' from ' . $user->username;
-        $adminNotification->click_url = urlPath('admin.users.investment', $user->id);
-        $adminNotification->save();
-
-        $general = gs();
-
-        notify($user, 'INVESTMENT', [
-            'currency'     => $general->cur_text,
-            'trx'          => $transaction->trx,
-            'plan'         => $plan->name,
-            'amount'       => showAmount($request->amount, currencyFormat: false),
-            'details'      => $transaction->details,
-            'post_balance' => $user->balance,
-            'interest'     => $interest,
-            'total_return' => $newInvest->total_return
-        ]);
+        $investment = \App\Lib\InvestmentService::invest($user, $plan, $request->amount);
 
         $notify[] = ['success', 'Invested successfully'];
         return redirect()->route('user.investment.log')->withNotify($notify);
