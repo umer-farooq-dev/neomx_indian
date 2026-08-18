@@ -3,8 +3,8 @@
     @php
         $kyc = getContent('kyc.content', true);
     @endphp
-    <section class="py-5">
-        <div class="container">
+    <section>
+        <div class="container-fluid px-0">
             <div class="row align-items-center">
                 <div class="col-lg-12 mb-30">
                     <div class="notice"></div>
@@ -55,103 +55,105 @@
 
                 </div>
 
-                <div class="col-lg-3 col-sm-6">
-                    <a class="d-block" href="{{ route('user.wallet') }}">
-                        <div class="balance-card">
-                            <span class="text--dark">@lang('Main Wallet')</span>
-                            <h3 class="number text--dark">
-                                {{ showAmount($user->balance) }}
-                            </h3>
-                        </div><!-- dashboard-card end -->
-                    </a>
-                </div>
-                <div class="col-lg-3 col-sm-6">
-                    <div class="dashboard-card h-100">
-                        <span>@lang('Total Deposit')</span>
-                        <a class="view--btn" href="{{ route('user.deposit.history') }}">@lang('View all')</a>
-                        <h3 class="number">
-                            {{ showAmount($totalDeposit) }}
-                        </h3>
-                        <i class="las la-dollar-sign icon"></i>
-                    </div><!-- dashboard-card end -->
-                </div>
-                <div class="col-lg-3 col-sm-6">
-                    <div class="dashboard-card">
-                        <span>@lang('Total Withdraw')</span>
-                        <a class="view--btn" href="{{ route('user.withdraw.history') }}">@lang('View all')</a>
-                        <h3 class="number">
-                            {{ showAmount($totalWithdraw) }}
-                        </h3>
-                        <i class="las la-hand-holding-usd icon"></i>
-                    </div><!-- dashboard-card end -->
-                </div>
-                <div class="col-lg-3 col-sm-6">
-                    <div class="dashboard-card">
-                        <span>@lang('Total Investment')</span>
-                        <a class="view--btn" href="{{ route('user.investment.log') }}">@lang('View all')</a>
-                        <h3 class="number">
-                            {{ showAmount($totalInvest) }}
-                        </h3>
-                        <i class="las la-dollar-sign icon"></i>
-                    </div><!-- dashboard-card end -->
-                </div>
+                @php
+                    $dashCards = [
+                        [
+                            'label' => 'Main Wallet',
+                            'value' => showAmount($user->balance),
+                            'icon' => 'las la-wallet',
+                            'accent' => 'teal',
+                            'url' => route('user.wallet'),
+                            'action' => 'View wallet',
+                        ],
+                        [
+                            'label' => 'Total Deposit',
+                            'value' => showAmount($totalDeposit),
+                            'icon' => 'las la-plus-circle',
+                            'accent' => 'blue',
+                            'url' => route('user.deposit.history'),
+                            'action' => 'View all',
+                        ],
+                        [
+                            'label' => 'Total Withdraw',
+                            'value' => showAmount($totalWithdraw),
+                            'icon' => 'la la-hand-holding-usd',
+                            'accent' => 'amber',
+                            'url' => route('user.withdraw.history'),
+                            'action' => 'View all',
+                        ],
+                        [
+                            'label' => 'Total Investment',
+                            'value' => showAmount($totalInvest),
+                            'icon' => 'las la-project-diagram',
+                            'accent' => 'purple',
+                            'url' => route('user.investment.log'),
+                            'action' => 'View all',
+                        ],
+                        [
+                            'label' => 'Referral Wallet',
+                            'value' => showAmount($user->referral_balance),
+                            'icon' => 'las la-sitemap',
+                            'accent' => 'green',
+                            'url' => route('user.wallet', ['wallet_type' => 'referral']),
+                            'action' => 'View wallet',
+                        ],
+                        [
+                            'label' => 'Reward Wallet',
+                            'value' => showAmount($user->reward_balance),
+                            'icon' => 'las la-gift',
+                            'accent' => 'pink',
+                            'url' => route('user.wallet', ['wallet_type' => 'reward']),
+                            'action' => 'View wallet',
+                        ],
+                        [
+                            'label' => 'Team Members',
+                            'value' => $teamSize,
+                            'icon' => 'las la-user-friends',
+                            'accent' => 'blue',
+                            'url' => route('user.referrals'),
+                            'action' => 'View team',
+                        ],
+                        [
+                            'label' => 'Spin Rewards Available',
+                            'value' => $availableSpins,
+                            'icon' => 'las la-dharmachakra',
+                            'accent' => 'teal',
+                            'url' => route('user.spin'),
+                            'action' => 'Spin now',
+                        ],
+                    ];
+                @endphp
 
-                <div class="col-lg-3 col-sm-6">
-                    <a class="d-block" href="{{ route('user.wallet', ['wallet_type' => 'referral']) }}">
-                        <div class="dashboard-card h-100">
-                            <span>@lang('Referral Wallet')</span>
-                            <h3 class="number">
-                                {{ showAmount($user->referral_balance) }}
-                            </h3>
-                            <i class="las la-sitemap icon"></i>
+                @foreach ($dashCards as $card)
+                    <div class="col-xxl-3 col-lg-4 col-sm-6 mb-4">
+                        <div class="nxd-card nxd-card--{{ $card['accent'] }}">
+                            <div class="nxd-card__head">
+                                <span class="nxd-card__label">@lang($card['label'])</span>
+                                <span class="nxd-card__icon"><i class="{{ $card['icon'] }}"></i></span>
+                            </div>
+                            <div class="nxd-card__value">{{ $card['value'] }}</div>
+                            <a href="{{ $card['url'] }}" class="nxd-card__link">
+                                @lang($card['action']) <i class="las la-arrow-right"></i>
+                            </a>
                         </div>
-                    </a>
-                </div>
-                <div class="col-lg-3 col-sm-6">
-                    <a class="d-block" href="{{ route('user.wallet', ['wallet_type' => 'reward']) }}">
-                        <div class="dashboard-card h-100">
-                            <span>@lang('Reward Wallet')</span>
-                            <h3 class="number">
-                                {{ showAmount($user->reward_balance) }}
-                            </h3>
-                            <i class="las la-gift icon"></i>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-lg-3 col-sm-6">
-                    <a class="d-block" href="{{ route('user.referrals') }}">
-                        <div class="dashboard-card h-100">
-                            <span>@lang('Team Members')</span>
-                            <h3 class="number">
-                                {{ $teamSize }}
-                            </h3>
-                            <i class="las la-user-friends icon"></i>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-lg-3 col-sm-6">
-                    <a class="d-block" href="{{ route('user.spin') }}">
-                        <div class="dashboard-card h-100">
-                            <span>@lang('Spin Rewards Available')</span>
-                            <h3 class="number">
-                                {{ $availableSpins }}
-                            </h3>
-                            <i class="las la-dharmachakra icon"></i>
-                        </div>
-                    </a>
-                </div>
+                    </div>
+                @endforeach
             </div><!-- row end -->
-            <div class="row justify-content-center gx-4 gy-5 mt-5">
+            <div class="nxd-plans-row mt-4">
 
                 <!-- Here Attach Plans cardfrom view partial blade  -->
                 @include($activeTemplate . 'partials.plans_card')
 
             </div>
-            <div class="row mt-5">
+            <div class="row mt-4">
                 <div class="col-lg-12">
 
-                    <div class="table-responsive--md">
-                        <h4 class="mb-3">@lang('Latest Transactions')</h4>
+                    <div class="nxd-panel">
+                        <div class="nxd-panel__head">
+                            <h5 class="nxd-panel__title">@lang('Latest Transactions')</h5>
+                            <a href="{{ route('user.transactions') }}" class="nxd-panel__action">@lang('View all') <i class="las la-arrow-right"></i></a>
+                        </div>
+                        <div class="table-responsive--md">
                         <table class="custom--table table">
                             <thead>
                                 <tr>
@@ -192,6 +194,7 @@
 
                             </tbody>
                         </table>
+                        </div>
                     </div>
                 </div>
             </div>

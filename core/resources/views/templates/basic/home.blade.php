@@ -71,14 +71,7 @@
                 </div>
                 <div class="col-lg-6" data-reveal>
                     <div class="nx-hero__art">
-                        <div class="nx-orb">
-                            <span class="nx-orb__mark">{{ Str::substr(gs('site_name'), 0, 1) }}</span>
-                        </div>
-                        <div class="nx-bars">
-                            <span></span><span></span><span></span><span></span><span></span>
-                        </div>
-                        <img src="{{ asset($activeTemplateTrue . 'images/frontend/3d/arrow.png') }}" alt="" aria-hidden="true" class="nx-hero__arrow-img">
-                        <img src="{{ asset($activeTemplateTrue . 'images/frontend/3d/coins.png') }}" alt="@lang('Grow your investment')" class="nx-hero__coins">
+                        @include($activeTemplate . 'partials.hero_scene')
                     </div>
                 </div>
             </div>

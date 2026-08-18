@@ -98,8 +98,11 @@
         }
 
         .auth-devide span {
-            padding-inline: 6px;
-            background: #20204e;
+            padding-inline: 8px;
+            /* masks the rule behind it, so it has to track the modal surface */
+            background: #101b30;
+            color: rgba(238, 243, 251, .7);
+            font-size: .82rem;
         }
     </style>
 @endpush

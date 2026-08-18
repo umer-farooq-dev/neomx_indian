@@ -1,0 +1,669 @@
+/* =====================================================================
+   NX DASH — logged-in area shell + cards. Mirrors the homepage's dashboard
+   preview: fixed sidebar, sticky topbar, glass cards on a deep canvas.
+   Loaded only inside the user panel, so the public pages are untouched.
+   ===================================================================== */
+
+:root {
+    --nxd-bg: #060a14;
+    --nxd-surface: #0c1424;
+    --nxd-surface-2: #101b30;
+    --nxd-line: rgba(255, 255, 255, .08);
+    --nxd-teal: #17e0c3;
+    --nxd-blue: #2f8fff;
+    --nxd-text: #eef3fb;
+    --nxd-dim: rgba(238, 243, 251, .66);
+    --nxd-side: 258px;
+    --nxd-ease: cubic-bezier(.19, 1, .22, 1);
+}
+
+body.nx-dash {
+    background: var(--nxd-bg);
+    color: var(--nxd-text);
+}
+
+body.nx-dash .main-wrapper {
+    background: transparent;
+    padding: 0;
+}
+
+/* the marketing footer renders outside the panel shell, so it would sit under
+   the fixed sidebar; the panel carries its own chrome instead */
+body.nx-dash .nx-footer,
+body.nx-dash .footer,
+body.nx-dash .scroll-to-top {
+    display: none !important;
+}
+
+/* ---------------- sidebar ---------------- */
+.nxd-side {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--nxd-side);
+    z-index: 1045;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(180deg, var(--nxd-surface-2) 0%, var(--nxd-surface) 100%);
+    border-right: 1px solid var(--nxd-line);
+    box-shadow: 18px 0 45px -30px rgba(0, 0, 0, .9);
+    transition: transform .4s var(--nxd-ease);
+}
+
+.nxd-side__logo {
+    padding: 1.1rem 1.25rem;
+    border-bottom: 1px solid var(--nxd-line);
+    flex-shrink: 0;
+}
+
+.nxd-side__logo img {
+    max-height: 38px;
+    max-width: 100%;
+}
+
+.nxd-side__nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: .9rem .75rem 1.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, .16) transparent;
+}
+
+.nxd-side__nav::-webkit-scrollbar { width: 6px; }
+.nxd-side__nav::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .16); border-radius: 4px; }
+
+.nxd-side__label {
+    padding: .9rem .75rem .4rem;
+    font-size: .66rem;
+    font-weight: 800;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: rgba(238, 243, 251, .38);
+}
+
+.nxd-link {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    padding: .62rem .75rem;
+    margin-bottom: .18rem;
+    border-radius: 10px;
+    font-size: .87rem;
+    font-weight: 500;
+    color: var(--nxd-dim);
+    border: 1px solid transparent;
+    transition: background .25s ease, color .25s ease, border-color .25s ease, transform .25s var(--nxd-ease);
+}
+
+.nxd-link i {
+    font-size: 1.1rem;
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.nxd-link:hover {
+    background: rgba(255, 255, 255, .05);
+    color: #fff;
+    transform: translateX(3px);
+}
+
+.nxd-link.active {
+    background: linear-gradient(90deg, color-mix(in srgb, var(--nxd-teal) 22%, transparent), transparent 85%);
+    border-color: color-mix(in srgb, var(--nxd-teal) 32%, transparent);
+    color: var(--nxd-teal);
+    font-weight: 600;
+    box-shadow: inset 2px 0 0 var(--nxd-teal);
+}
+
+.nxd-link__badge {
+    margin-left: auto;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--nxd-teal), var(--nxd-blue));
+    color: #04211c;
+    font-size: .68rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nxd-link__caret {
+    margin-left: auto;
+    font-size: .9rem;
+    transition: transform .3s var(--nxd-ease);
+}
+
+.nxd-group.open > .nxd-link .nxd-link__caret {
+    transform: rotate(90deg);
+}
+
+.nxd-group__items {
+    display: none;
+    margin: .1rem 0 .35rem 1.55rem;
+    padding-left: .7rem;
+    border-left: 1px solid var(--nxd-line);
+}
+
+.nxd-group.open > .nxd-group__items {
+    display: block;
+}
+
+.nxd-sublink {
+    display: block;
+    padding: .42rem .6rem;
+    border-radius: 8px;
+    font-size: .82rem;
+    color: var(--nxd-dim);
+    transition: color .25s ease, background .25s ease;
+}
+
+.nxd-sublink:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, .04);
+}
+
+.nxd-sublink.active {
+    color: var(--nxd-teal);
+    font-weight: 600;
+}
+
+/* ---------------- shell ---------------- */
+.nxd-shell {
+    margin-left: var(--nxd-side);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.nxd-top {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: .9rem 1.6rem;
+    background: rgba(6, 10, 20, .82);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--nxd-line);
+}
+
+.nxd-top__title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+}
+
+.nxd-top__right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+}
+
+.nxd-iconbtn {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, .05);
+    border: 1px solid var(--nxd-line);
+    color: #fff;
+    font-size: 1.1rem;
+    transition: background .25s ease, border-color .25s ease, transform .25s var(--nxd-ease);
+}
+
+.nxd-iconbtn:hover {
+    color: var(--nxd-teal);
+    border-color: color-mix(in srgb, var(--nxd-teal) 45%, transparent);
+    transform: translateY(-2px);
+}
+
+.nxd-iconbtn__dot {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--nxd-teal), var(--nxd-blue));
+    color: #04211c;
+    font-size: .64rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nxd-logout {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .5rem 1rem;
+    border-radius: 10px;
+    font-size: .84rem;
+    font-weight: 700;
+    color: #04211c;
+    background: linear-gradient(90deg, var(--nxd-teal), var(--nxd-blue));
+    box-shadow: 0 14px 26px -14px rgba(23, 224, 195, .6);
+    transition: transform .25s var(--nxd-ease), filter .25s ease;
+    border: none;
+}
+
+.nxd-logout:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.06);
+    color: #04211c;
+}
+
+.nxd-burger {
+    display: none;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .05);
+    border: 1px solid var(--nxd-line);
+    color: #fff;
+    font-size: 1.25rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.nxd-body {
+    flex: 1;
+    padding: 1.5rem 1.6rem 3rem;
+}
+
+.nxd-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .6);
+    backdrop-filter: blur(2px);
+    z-index: 1040;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .3s ease, visibility .3s ease;
+}
+
+.nxd-backdrop.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+@media (max-width: 1199px) {
+    .nxd-side { transform: translateX(-100%); }
+    .nxd-side.open { transform: translateX(0); }
+    .nxd-shell { margin-left: 0; }
+    .nxd-burger { display: inline-flex; }
+}
+
+@media (max-width: 575px) {
+    .nxd-top { padding: .75rem 1rem; }
+    .nxd-body { padding: 1.1rem 1rem 2.5rem; }
+    .nxd-top__title { font-size: .98rem; }
+}
+
+/* ---------------- cards ---------------- */
+.nxd-card {
+    position: relative;
+    height: 100%;
+    padding: 1.25rem;
+    border-radius: 16px;
+    border: 1px solid var(--nxd-line);
+    background: var(--nxd-surface);
+    overflow: hidden;
+    transition: transform .4s var(--nxd-ease), border-color .35s ease, box-shadow .4s var(--nxd-ease);
+}
+
+.nxd-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(155deg, color-mix(in srgb, var(--accent, var(--nxd-teal)) 26%, transparent), transparent 62%);
+    pointer-events: none;
+}
+
+.nxd-card:hover {
+    transform: translateY(-5px);
+    border-color: color-mix(in srgb, var(--accent, var(--nxd-teal)) 45%, transparent);
+    box-shadow: 0 26px 50px -26px color-mix(in srgb, var(--accent, var(--nxd-teal)) 55%, transparent);
+}
+
+.nxd-card__head {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .6rem;
+}
+
+.nxd-card__label {
+    font-size: .78rem;
+    color: var(--nxd-dim);
+}
+
+.nxd-card__icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    color: var(--accent, var(--nxd-teal));
+    background: color-mix(in srgb, var(--accent, var(--nxd-teal)) 16%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent, var(--nxd-teal)) 28%, transparent);
+    flex-shrink: 0;
+}
+
+.nxd-card__value {
+    position: relative;
+    margin-top: .5rem;
+    font-size: 1.55rem;
+    font-weight: 800;
+    line-height: 1.15;
+    color: #fff;
+    word-break: break-word;
+}
+
+.nxd-card__link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    margin-top: .6rem;
+    font-size: .76rem;
+    font-weight: 600;
+    color: var(--accent, var(--nxd-teal));
+}
+
+.nxd-card__link:hover {
+    color: #fff;
+}
+
+.nxd-card--teal   { --accent: #17e0c3; }
+.nxd-card--blue   { --accent: #2f8fff; }
+.nxd-card--purple { --accent: #b98bff; }
+.nxd-card--amber  { --accent: #ffc15c; }
+.nxd-card--pink   { --accent: #ff7bac; }
+.nxd-card--green  { --accent: #4ade80; }
+
+/* ---------------- plan cards (shared by dashboard + plans page) ---------------- */
+.nxd-plan {
+    --tier: var(--nxd-teal);
+    --tier-2: var(--nxd-blue);
+    position: relative;
+    height: 100%;
+    margin-top: 13px;
+    padding: 2.3rem 1.1rem 1.4rem;
+    text-align: center;
+    border-radius: 16px;
+    border: 1px solid color-mix(in srgb, var(--tier) 45%, transparent);
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--tier) 15%, transparent) 0%, transparent 45%),
+        var(--nxd-surface);
+    transition: transform .4s var(--nxd-ease), box-shadow .4s var(--nxd-ease);
+}
+
+.nxd-plan:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 26px 50px -24px color-mix(in srgb, var(--tier) 58%, transparent);
+}
+
+.nxd-plan__tier {
+    position: absolute;
+    top: -13px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: .3rem 1.15rem;
+    border-radius: 999px;
+    font-size: .68rem;
+    font-weight: 800;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: #04140f;
+    background: linear-gradient(90deg, var(--tier), var(--tier-2));
+    box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--tier) 80%, transparent);
+}
+
+.nxd-plan__name {
+    font-size: .95rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: #fff;
+}
+
+.nxd-plan__price {
+    font-size: 1.7rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #fff;
+    margin: .35rem 0 1rem;
+}
+
+.nxd-plan__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: .5rem;
+    padding: .5rem 0;
+    border-top: 1px solid var(--nxd-line);
+    font-size: .78rem;
+    color: var(--nxd-dim);
+    text-align: left;
+}
+
+.nxd-plan__row b {
+    color: var(--tier);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.nxd-plan__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+    margin-top: 1.1rem;
+    padding: .68rem;
+    border-radius: 10px;
+    font-size: .85rem;
+    font-weight: 700;
+    color: #04140f;
+    background: linear-gradient(90deg, var(--tier), var(--tier-2));
+    transition: transform .3s var(--nxd-ease), filter .3s ease;
+}
+
+.nxd-plan__btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+    color: #04140f;
+}
+
+.nxd-plan--1 { --tier: #17e0c3; --tier-2: #0ea895; }
+.nxd-plan--2 { --tier: #4fa8ff; --tier-2: #2f6fe0; }
+.nxd-plan--3 { --tier: #b98bff; --tier-2: #8c5cf0; }
+.nxd-plan--4 { --tier: #ffc15c; --tier-2: #ff9d33; }
+.nxd-plan--5 { --tier: #ff7bac; --tier-2: #ef4f8c; }
+
+/* keeps every tier on one row; the partial's bootstrap columns are neutralised */
+.nxd-plans-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+    align-items: stretch;
+}
+
+.nxd-plans-row > [class*="col-"] {
+    width: 100%;
+    max-width: 100%;
+    flex: none;
+    padding: 0;
+    margin: 0;
+}
+
+@media (max-width: 1599px) {
+    .nxd-plans-row { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (max-width: 1399px) {
+    .nxd-plans-row { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 991px) {
+    .nxd-plans-row { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 575px) {
+    .nxd-plans-row { grid-template-columns: 1fr; }
+}
+
+/* ---------------- panels ---------------- */
+.nxd-panel {
+    border-radius: 16px;
+    border: 1px solid var(--nxd-line);
+    background: var(--nxd-surface);
+    padding: 1.35rem;
+    height: 100%;
+}
+
+.nxd-panel__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .8rem;
+    margin-bottom: 1rem;
+}
+
+.nxd-panel__title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+}
+
+.nxd-panel__action {
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--nxd-teal);
+}
+
+/* ---------------- tables ---------------- */
+body.nx-dash .custom--table {
+    border-collapse: separate;
+    border-spacing: 0 .55rem;
+    margin: 0;
+}
+
+/* color.php paints .custom--table thead with the brand colour and loads after
+   this file, so the reset has to be explicit on the thead itself */
+body.nx-dash .custom--table thead {
+    background: transparent !important;
+}
+
+body.nx-dash .custom--table thead th {
+    background: transparent !important;
+    border: none !important;
+    padding: .35rem .95rem;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: rgba(238, 243, 251, .45);
+}
+
+body.nx-dash .custom--table tbody tr {
+    background: var(--nxd-surface-2);
+}
+
+body.nx-dash .custom--table tbody td {
+    background: transparent;
+    border: none;
+    border-top: 1px solid var(--nxd-line);
+    border-bottom: 1px solid var(--nxd-line);
+    padding: .8rem .95rem;
+    font-size: .84rem;
+    color: var(--nxd-text);
+    vertical-align: middle;
+}
+
+body.nx-dash .custom--table tbody td:first-child {
+    border-left: 1px solid var(--nxd-line);
+    border-radius: 11px 0 0 11px;
+}
+
+body.nx-dash .custom--table tbody td:last-child {
+    border-right: 1px solid var(--nxd-line);
+    border-radius: 0 11px 11px 0;
+}
+
+body.nx-dash .custom--table tbody tr:hover td {
+    border-color: color-mix(in srgb, var(--nxd-teal) 30%, transparent);
+}
+
+/* ---------------- misc controls inside the panel ---------------- */
+body.nx-dash .form--control {
+    background: rgba(255, 255, 255, .04);
+    border: 1px solid var(--nxd-line) !important;
+    border-radius: 10px;
+    color: #fff;
+}
+
+body.nx-dash .form--control:focus {
+    border-color: color-mix(in srgb, var(--nxd-teal) 60%, transparent) !important;
+    box-shadow: 0 0 0 3px rgba(23, 224, 195, .13);
+}
+
+body.nx-dash .btn--base {
+    background: linear-gradient(90deg, var(--nxd-teal), var(--nxd-blue)) !important;
+    border: none;
+    border-radius: 10px;
+    color: #04211c !important;
+    font-weight: 700;
+    transition: transform .25s var(--nxd-ease), filter .25s ease;
+}
+
+body.nx-dash .btn--base:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.06);
+}
+
+body.nx-dash .card,
+body.nx-dash .custom--card {
+    background: var(--nxd-surface);
+    border: 1px solid var(--nxd-line);
+    border-radius: 16px;
+}
+
+body.nx-dash .card-header {
+    background: transparent;
+    border-bottom: 1px solid var(--nxd-line);
+    color: #fff;
+}
+
+body.nx-dash .text--base {
+    color: var(--nxd-teal) !important;
+}
+
+body.nx-dash .alert {
+    border-radius: 12px;
+}
+
+/* the referral link block reused from the public side */
+body.nx-dash .input-group-text.bg--base {
+    background: linear-gradient(90deg, var(--nxd-teal), var(--nxd-blue)) !important;
+    border: none;
+    color: #04211c;
+}

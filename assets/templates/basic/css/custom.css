@@ -1259,6 +1259,157 @@ h1, h2, h3, h4, h5, h6,
     }
 }
 
+/* ---------- auth modals: clear the fixed navbar, raised glass panel ---------- */
+#loginModal .modal-dialog,
+#registerModal .modal-dialog,
+#otpModal .modal-dialog,
+#resetModal .modal-dialog {
+    align-items: flex-start;
+    min-height: auto;
+    margin-top: 6.5rem;
+    margin-bottom: 2.5rem;
+}
+
+@media (max-width: 575px) {
+    #loginModal .modal-dialog,
+    #registerModal .modal-dialog,
+    #otpModal .modal-dialog,
+    #resetModal .modal-dialog {
+        margin-top: 5rem;
+    }
+}
+
+#loginModal .modal-content,
+#registerModal .modal-content,
+#otpModal .modal-content,
+#resetModal .modal-content {
+    border-radius: 20px;
+    border: 1px solid rgba(23, 224, 195, .28) !important;
+    background:
+        radial-gradient(120% 80% at 50% 0%, rgba(23, 224, 195, .16) 0%, transparent 58%),
+        linear-gradient(180deg, #101b30 0%, #0a1120 100%);
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, .04),
+        0 40px 80px -30px rgba(0, 0, 0, .85),
+        0 0 70px -30px rgba(23, 224, 195, .55),
+        inset 0 1px 0 rgba(255, 255, 255, .09);
+    overflow: hidden;
+}
+
+#loginModal .modal-header,
+#registerModal .modal-header,
+#otpModal .modal-header,
+#resetModal .modal-header {
+    border-bottom: 1px solid rgba(255, 255, 255, .07);
+    padding: 1.15rem 1.5rem;
+}
+
+#loginModal .modal-title,
+#registerModal .modal-title,
+#otpModal .modal-title,
+#resetModal .modal-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #fff;
+}
+
+#loginModal .btn-close,
+#registerModal .btn-close,
+#otpModal .btn-close,
+#resetModal .btn-close {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .07);
+    border: 1px solid rgba(255, 255, 255, .12);
+    color: #fff;
+    opacity: 1;
+    transition: background .3s ease, border-color .3s ease;
+}
+
+#loginModal .btn-close:hover,
+#registerModal .btn-close:hover,
+#otpModal .btn-close:hover,
+#resetModal .btn-close:hover {
+    background: rgba(255, 90, 90, .22);
+    border-color: rgba(255, 90, 90, .45);
+}
+
+#loginModal .form--control,
+#registerModal .form--control,
+#otpModal .form--control,
+#resetModal .form--control {
+    background: rgba(255, 255, 255, .04);
+    border: 1px solid rgba(255, 255, 255, .12) !important;
+    border-radius: 10px;
+    color: #fff;
+    transition: border-color .3s ease, box-shadow .3s ease;
+}
+
+#loginModal .form--control:focus,
+#registerModal .form--control:focus,
+#otpModal .form--control:focus,
+#resetModal .form--control:focus {
+    border-color: rgba(23, 224, 195, .65) !important;
+    box-shadow: 0 0 0 3px rgba(23, 224, 195, .14);
+}
+
+#loginModal .btn--base,
+#registerModal .btn--base,
+#otpModal .btn--base,
+#resetModal .btn--base {
+    background: linear-gradient(90deg, #17e0c3, #2f8fff) !important;
+    border: none;
+    border-radius: 10px;
+    color: #04211c !important;
+    font-weight: 700;
+    box-shadow: 0 16px 30px -14px rgba(23, 224, 195, .6);
+    transition: transform .3s var(--ease-premium), filter .3s ease;
+}
+
+#loginModal .btn--base:hover,
+#registerModal .btn--base:hover,
+#otpModal .btn--base:hover,
+#resetModal .btn--base:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.06);
+}
+
+#loginModal .text--base,
+#registerModal .text--base,
+#otpModal .text--base,
+#resetModal .text--base,
+#loginModal .link-color,
+#registerModal a[data-bs-target] {
+    color: #17e0c3 !important;
+}
+
+/* lift-in entrance instead of the default slide */
+#loginModal.fade .modal-dialog,
+#registerModal.fade .modal-dialog,
+#otpModal.fade .modal-dialog,
+#resetModal.fade .modal-dialog {
+    transform: translateY(28px) scale(.97);
+    transition: transform .45s var(--ease-premium), opacity .35s ease;
+}
+
+#loginModal.show .modal-dialog,
+#registerModal.show .modal-dialog,
+#otpModal.show .modal-dialog,
+#resetModal.show .modal-dialog {
+    transform: translateY(0) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #loginModal.fade .modal-dialog,
+    #registerModal.fade .modal-dialog,
+    #otpModal.fade .modal-dialog,
+    #resetModal.fade .modal-dialog {
+        transform: none;
+        transition: none;
+    }
+}
+
 /* ---------- cookie notice: match the dark premium theme ---------- */
 .cookies-card {
     background: var(--surface-2) !important;

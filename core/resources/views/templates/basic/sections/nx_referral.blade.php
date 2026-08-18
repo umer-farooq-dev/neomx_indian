@@ -1,3 +1,7 @@
+@php
+    $spinRewards = App\Models\SpinReward::active()->orderBy('id')->get();
+@endphp
+
 <section class="nx-section" id="referral">
     <div class="nx-container">
         <div class="row gy-4">
@@ -29,9 +33,19 @@
             <div class="col-lg-6" data-reveal>
                 <div class="nx-panel text-center">
                     <div class="nx-eyebrow justify-content-center">@lang('Spin & Win')</div>
-                    <div class="nx-spinwheel mt-3">
-                        <div class="nx-spinwheel__hub"></div>
-                    </div>
+                    @if ($spinRewards->isNotEmpty())
+                        <div class="nx-spinwheel-wrap mt-3">
+                            <span class="nx-spinwheel-pointer"></span>
+                            <div class="nx-spinwheel-rotor">
+                                @include($activeTemplate . 'partials.spin_wheel', [
+                                    'wheelRewards' => $spinRewards,
+                                    'wheelId' => 'nxHomeWheel',
+                                    'wheelSize' => 260,
+                                ])
+                            </div>
+                            <span class="nx-spinwheel-hub">{{ Str::substr(gs('site_name'), 0, 1) }}</span>
+                        </div>
+                    @endif
                     <div class="nx-bullets text-start">
                         <div class="nx-bullet"><i class="las la-gift"></i> @lang('Earn free spins as your referral network grows')</div>
                         <div class="nx-bullet"><i class="las la-dharmachakra"></i> @lang('Every spin always wins a reward')</div>

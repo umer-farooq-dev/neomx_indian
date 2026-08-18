@@ -18,7 +18,7 @@
 </head>
 @php echo loadExtension('google-analytics') @endphp
 
-<body>
+<body class="@yield('body-class')">
 
     <div class="preloader">
         <div class="preloader-container">

@@ -22,7 +22,7 @@
 
                 <div class="text-center mb-3">
                     <a href="#0" class="text--base otp-modal-trigger" data-bs-toggle="modal" data-bs-target="#otpModal" data-bs-dismiss="modal">
-                        <i class="las la-mobile"></i> @lang('Login with Mobile OTP')
+                        <i class="las la-sms"></i> @lang('Login with Mobile OTP')
                     </a>
                 </div>
                 <div class="auth-devide">
@@ -101,7 +101,7 @@
 
                 <div class="text-center mb-3">
                     <a href="#0" class="text--base otp-modal-trigger" data-bs-toggle="modal" data-bs-target="#otpModal" data-bs-dismiss="modal">
-                        <i class="las la-mobile"></i> @lang('Sign up with Mobile OTP')
+                        <i class="las la-sms"></i> @lang('Sign up with Mobile OTP')
                     </a>
                 </div>
                 <div class="auth-devide">
