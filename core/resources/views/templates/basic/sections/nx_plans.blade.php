@@ -10,6 +10,14 @@
             <p class="nx-sub">@lang('Higher investment, higher daily returns')</p>
         </div>
 
+        <div class="nx-plan-rail">
+            <button type="button" class="nx-plan-nav nx-plan-nav--prev" aria-label="@lang('Previous plan')">
+                <i class="las la-angle-left"></i>
+            </button>
+            <button type="button" class="nx-plan-nav nx-plan-nav--next" aria-label="@lang('Next plan')">
+                <i class="las la-angle-right"></i>
+            </button>
+
         <div class="nx-plan-grid" data-reveal>
             @foreach ($plans as $plan)
                 @php
@@ -46,6 +54,7 @@
                 </div>
             @endforeach
         </div>
+        </div>
 
         <div class="nx-plans__note-wrap" data-reveal>
             <span class="nx-plans__note">
@@ -56,3 +65,24 @@
 </section>
 
 <x-plan-modal />
+
+@push('script')
+    <script>
+        (function($) {
+            "use strict";
+
+            // Below 768px the grid becomes a snap-scrolling rail; these step it by
+            // one card. Above that the buttons are hidden and this does nothing.
+            const rail = document.querySelector('.nx-plan-grid');
+            if (!rail) return;
+
+            const step = () => {
+                const card = rail.querySelector('.nx-plan');
+                return card ? card.getBoundingClientRect().width + 16 : rail.clientWidth * 0.8;
+            };
+
+            $('.nx-plan-nav--next').on('click', () => rail.scrollBy({ left: step(), behavior: 'smooth' }));
+            $('.nx-plan-nav--prev').on('click', () => rail.scrollBy({ left: -step(), behavior: 'smooth' }));
+        })(jQuery);
+    </script>
+@endpush

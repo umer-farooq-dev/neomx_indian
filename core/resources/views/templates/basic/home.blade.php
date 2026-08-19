@@ -13,12 +13,16 @@
     <section class="nx-hero">
         <div class="nx-container">
             <div class="row align-items-center gy-5">
-                <div class="col-lg-6" data-reveal>
+                <div class="col-lg-6 nx-hero__copy" data-reveal>
                     @php
                         // Heading supports an optional "|" split so the admin can control which
                         // part renders in the accent gradient. Without it the whole line is plain.
                         $headingParts = array_map('trim', explode('|', __(@$banner->data_values->heading), 2));
                     @endphp
+                    <span class="nx-hero__pill">
+                        <i class="las la-shield-alt"></i>
+                        @lang('Secure') &middot; @lang('Trusted') &middot; @lang('Transparent')
+                    </span>
                     <h1 class="nx-hero__title">
                         <span>{{ $headingParts[0] }}</span>
                         @if (!empty($headingParts[1]))
@@ -69,9 +73,10 @@
                         <a href="#plan" class="nx-btn nx-btn--outline">@lang('View Plans')</a>
                     </div>
                 </div>
-                <div class="col-lg-6" data-reveal>
+                <div class="col-lg-6 nx-hero__visual" data-reveal>
                     <div class="nx-hero__art">
                         @include($activeTemplate . 'partials.hero_scene')
+                        @include($activeTemplate . 'partials.hero_scene_mobile')
                     </div>
                 </div>
             </div>
@@ -84,5 +89,24 @@
             @include($activeTemplate . 'sections.' . $sec)
         @endforeach
     @endif
+
+    {{-- Phones lose sight of the call to action as soon as they scroll, so it rides
+         along the bottom. Hidden from 768px up, where the header CTA stays visible. --}}
+    <div class="nx-dock">
+        <div class="nx-dock__brand">
+            <span class="nx-dock__mark">{{ Str::substr(gs('site_name'), 0, 1) }}</span>
+            <span>
+                <b>{{ gs('site_name') }}</b>
+                <small>@lang('Smart Investments, Better Tomorrow')</small>
+            </span>
+        </div>
+        @auth
+            <a href="{{ route('user.home') }}" class="nx-dock__cta">@lang('Dashboard') <i class="las la-arrow-right"></i></a>
+        @else
+            <a href="#0" class="nx-dock__cta" data-bs-toggle="modal" data-bs-target="#registerModal">
+                @lang('Get Started') <i class="las la-arrow-right"></i>
+            </a>
+        @endauth
+    </div>
 
 @endsection

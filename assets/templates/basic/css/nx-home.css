@@ -1075,3 +1075,596 @@ body:has(.nx-hero) {
     background: var(--nx-teal);
     color: #04140f;
 }
+
+/* =====================================================================
+   PHONE LAYOUT
+   Everything below 768px only. A tablet, laptop or desktop browser never
+   applies any of it, so the approved wide-screen design is untouched.
+   Elements that exist only for phones are hidden by default above and
+   switched on inside the query.
+   ===================================================================== */
+
+.nx-hero__pill,
+.nx-scene-mob,
+.nx-dock,
+.nx-plan-nav {
+    display: none;
+}
+
+@media (max-width: 767px) {
+
+    /* ---- rhythm ---- */
+    .nx-section { padding: 2.4rem 0; }
+    .nx-container { padding: 0 1.1rem; }
+    .nx-head { margin-bottom: 1.6rem; }
+    .nx-title { font-size: 1.42rem; }
+    .nx-sub { font-size: .9rem; }
+    .nx-eyebrow { font-size: .68rem; margin-bottom: .55rem; }
+
+    /* ---- hero ----
+       Text on the left, artwork on the right, feature tiles full width beneath.
+       The copy column is dissolved with display:contents so its children become
+       grid items and the tiles can break out of it. */
+    .nx-hero {
+        padding-top: 6rem;
+        padding-bottom: 1.5rem;
+    }
+
+    .nx-hero .row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 38%;
+        column-gap: .4rem;
+        row-gap: 0;
+        align-items: start;
+        margin: 0;
+    }
+
+    .nx-hero__copy { display: contents; }
+
+    .nx-hero__pill   { grid-column: 1; grid-row: 1; }
+    .nx-hero__title  { grid-column: 1; grid-row: 2; }
+    .nx-hero__desc   { grid-column: 1; grid-row: 3; }
+    .nx-hero__cta    { grid-column: 1; grid-row: 4; }
+    .nx-hero__mini   { grid-column: 1 / -1; grid-row: 5; }
+
+    .nx-hero__visual {
+        grid-column: 2;
+        grid-row: 1 / 5;
+        align-self: center;
+        padding: 0;
+    }
+
+    .nx-hero__pill {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        margin-bottom: .9rem;
+        padding: .34rem .8rem;
+        border-radius: 999px;
+        border: 1px solid color-mix(in srgb, var(--nx-teal) 35%, transparent);
+        background: color-mix(in srgb, var(--nx-teal) 12%, transparent);
+        color: var(--nx-teal);
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: .04em;
+    }
+
+    .nx-hero__title {
+        font-size: 1.28rem;
+        line-height: 1.18;
+        margin: 0;
+    }
+
+    .nx-hero__desc {
+        font-size: .8rem;
+        line-height: 1.5;
+        margin-top: .55rem;
+    }
+
+    /* the four selling points read as a 2x2 board instead of a long list */
+    .nx-hero__mini {
+        grid-template-columns: 1fr 1fr;
+        justify-content: stretch;
+        gap: .6rem;
+        margin-top: 1.4rem;
+    }
+
+    .nx-hero__mini-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: .45rem;
+        padding: .8rem .75rem;
+        border-radius: 12px;
+        border: 1px solid var(--nx-line);
+        background: var(--nx-surface);
+    }
+
+    .nx-hero__mini-title,
+    .nx-hero__mini-sub { white-space: normal; }
+    .nx-hero__mini-title { font-size: .82rem; }
+    .nx-hero__mini-sub { font-size: .7rem; }
+
+    .nx-hero__cta {
+        margin-top: 1rem;
+        gap: .5rem;
+    }
+
+    .nx-hero__cta .nx-btn {
+        flex: 1 1 100%;
+        justify-content: center;
+        padding: .7rem 1rem;
+        font-size: .84rem;
+        border-radius: 10px;
+    }
+
+    /* swap the desktop scene for the handset one */
+    .nx-hero__art { height: auto; margin: 0; }
+    .nx-hero__art::before { display: none; }
+    .nx-scene { display: none; }
+
+    .nx-scene-mob {
+        display: block;
+        width: 100%;
+        height: auto;
+        overflow: visible;
+    }
+
+    .nx-scene-mob__phone,
+    .nx-scene-mob__coins,
+    .nx-scene-mob__arrow {
+        transform-box: fill-box;
+        transform-origin: center;
+    }
+
+    .nx-scene-mob__phone { animation: nxFloatY 6s ease-in-out infinite; }
+    .nx-scene-mob__coins { animation: nxFloatY 7s ease-in-out infinite; animation-delay: -1.4s; }
+    .nx-scene-mob__arrow { animation: nxFloatY 8s ease-in-out infinite reverse; }
+
+    /* ---- stats ---- */
+    .nx-stats { margin-top: -1.4rem; }
+
+    .nx-stats__row {
+        grid-template-columns: 1fr 1fr;
+        gap: .6rem;
+        padding: 1rem;
+        border-radius: 14px;
+    }
+
+    .nx-stat { gap: .55rem; padding: .2rem; }
+    .nx-stat__icon { width: 36px; height: 36px; font-size: 1rem; border-radius: 10px; }
+    .nx-stat__value { font-size: 1rem; }
+    .nx-stat__label { font-size: .68rem; line-height: 1.3; }
+
+    /* ---- plans: a snap rail you swipe ---- */
+    .nx-plan-rail { position: relative; }
+
+    .nx-plan-grid {
+        display: flex;
+        gap: 1rem;
+        max-width: none;
+        margin: 0 -1.1rem;
+        padding: 14px 1.1rem .5rem;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .nx-plan-grid::-webkit-scrollbar { display: none; }
+
+    .nx-plan {
+        flex: 0 0 76%;
+        scroll-snap-align: center;
+        margin-top: 0;
+    }
+
+    .nx-plan-nav {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 4;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 1px solid var(--nx-line);
+        background: rgba(6, 10, 20, .85);
+        backdrop-filter: blur(6px);
+        color: #fff;
+        font-size: 1rem;
+    }
+
+    .nx-plan-nav--prev { left: -6px; }
+    .nx-plan-nav--next { right: -6px; }
+
+    .nx-plans__note { margin-top: 1.2rem; font-size: .74rem; padding: .45rem 1rem; }
+
+    /* ---- how it works ---- */
+    .nx-panel { padding: 1.25rem; border-radius: 16px; }
+    .nx-panel__title { font-size: 1.15rem; }
+    .nx-panel__desc { font-size: .87rem; }
+
+    .nx-steps { gap: 1.1rem; }
+    .nx-step { padding-right: 0; }
+    .nx-step__icon { width: 44px; height: 44px; font-size: 1.05rem; }
+    .nx-step__title { font-size: .85rem; }
+    .nx-step__sub { font-size: .72rem; }
+
+    /* ---- referral and spin ---- */
+    .nx-bullet { font-size: .82rem; }
+    .nx-spinwheel-wrap { width: 200px; }
+    .nx-spinwheel-hub { width: 48px; height: 48px; font-size: 1.05rem; }
+    .nx-refbox input { font-size: .8rem; }
+    .nx-refbox .nx-btn { flex: 1 1 100%; justify-content: center; }
+
+    /* ---- dashboard preview ---- */
+    .nx-mock { padding: .9rem; border-radius: 14px; }
+    .nx-mock__card { padding: .7rem; }
+    .nx-mock__card b { font-size: .92rem; }
+    .nx-mock__card span { font-size: .66rem; }
+
+    /* ---- trust ---- */
+    .nx-trust {
+        gap: .85rem;
+        padding: 1.1rem;
+        border-radius: 14px;
+    }
+
+    .nx-trust__item { flex: 1 1 100%; gap: .6rem; }
+    .nx-trust__item i { font-size: 1.15rem; }
+    .nx-trust__item b { font-size: .8rem; }
+    .nx-trust__item span { font-size: .7rem; }
+
+    /* ---- about ---- */
+    .nx-about-card { padding: 1rem; }
+    .nx-about-card__text { font-size: .78rem; }
+
+    /* ---- faq ---- */
+    .nx-faq .accordion-button { font-size: .85rem; padding: .8rem 1rem; }
+    .nx-faq .accordion-body { font-size: .82rem; }
+    .nx-support-card { padding: 1.25rem; }
+
+    /* ---- footer clears the docked bar ---- */
+    .nx-footer { padding-bottom: 6.5rem; }
+    .nx-footer-bottom { justify-content: center; text-align: center; }
+
+    /* the back-to-top button would otherwise sit on top of the docked bar */
+    .scroll-to-top {
+        bottom: 5.2rem;
+        right: .9rem;
+        width: 40px;
+        height: 40px;
+    }
+
+    /* ---- the docked call to action ---- */
+    .nx-dock {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1035;
+        padding: .6rem .9rem;
+        padding-bottom: calc(.6rem + env(safe-area-inset-bottom, 0px));
+        background: rgba(6, 10, 20, .92);
+        backdrop-filter: blur(14px);
+        border-top: 1px solid var(--nx-line);
+    }
+
+    .nx-dock__brand {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        min-width: 0;
+    }
+
+    .nx-dock__mark {
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        color: #04211c;
+        background: linear-gradient(135deg, var(--nx-teal), var(--nx-blue));
+    }
+
+    .nx-dock__brand b {
+        display: block;
+        font-size: .82rem;
+        color: #fff;
+        line-height: 1.15;
+    }
+
+    .nx-dock__brand small {
+        display: block;
+        font-size: .62rem;
+        color: var(--nx-text-dim);
+        line-height: 1.2;
+    }
+
+    .nx-dock__cta {
+        margin-left: auto;
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        padding: .6rem 1.05rem;
+        border-radius: 10px;
+        font-size: .83rem;
+        font-weight: 700;
+        color: #04211c;
+        background: linear-gradient(90deg, var(--nx-teal), var(--nx-blue));
+    }
+
+    .nx-dock__cta:hover { color: #04211c; }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+    .nx-scene-mob__phone,
+    .nx-scene-mob__coins,
+    .nx-scene-mob__arrow { animation: none !important; }
+}
+
+
+/* =====================================================================
+   PHONE LAYOUT — part 2: match the approved reference screen
+   The phone shows a shortlist of the page: hero, features, stats, plans,
+   referral + spin, payments, trust, and a docked call to action. The
+   longer explanatory sections stay on wide screens, where there is room
+   to read them.
+   ===================================================================== */
+
+@media (max-width: 767px) {
+
+    /* ---- sections the reference screen leaves out ---- */
+    #how-it-works,
+    #dashboard-preview,
+    #about,
+    #faq {
+        display: none;
+    }
+
+    /* ---- stats: four figures across one strip ---- */
+    .nx-stats__row {
+        grid-template-columns: repeat(4, 1fr);
+        gap: .35rem;
+        padding: .7rem .45rem;
+    }
+
+    .nx-stat {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: .3rem;
+        padding: 0;
+    }
+
+    .nx-stat__icon {
+        width: 26px;
+        height: 26px;
+        font-size: .78rem;
+        border-radius: 8px;
+    }
+
+    .nx-stat__value { font-size: .78rem; }
+    .nx-stat__label { font-size: .58rem; line-height: 1.25; }
+
+    /* ---- plans: three tiles in view, swipe for the rest ---- */
+    .nx-plan-grid {
+        gap: .5rem;
+        margin: 0 -1.1rem;
+        padding: 12px 1.1rem .4rem;
+    }
+
+    .nx-plan {
+        flex: 0 0 31%;
+        padding: 1.5rem .5rem .7rem;
+        border-radius: 11px;
+    }
+
+    .nx-plan__tier {
+        top: -9px;
+        padding: .18rem .55rem;
+        font-size: .5rem;
+        letter-spacing: .06em;
+    }
+
+    .nx-plan__name { font-size: .58rem; letter-spacing: .02em; }
+    .nx-plan__price { font-size: .92rem; margin: .2rem 0 .5rem; }
+
+    .nx-plan__row {
+        padding: .28rem 0;
+        font-size: .5rem;
+        gap: .2rem;
+    }
+
+    .nx-plan__row b { font-size: .55rem; }
+
+    .nx-plan__btn {
+        margin-top: .6rem;
+        padding: .42rem .2rem;
+        font-size: .58rem;
+        border-radius: 7px;
+        gap: .2rem;
+    }
+
+    .nx-plan__btn i { font-size: .7rem; }
+
+    .nx-plan-nav { width: 28px; height: 28px; font-size: .85rem; }
+    .nx-plan-nav--prev { left: -8px; }
+    .nx-plan-nav--next { right: -8px; }
+
+    /* ---- referral and spin sit side by side ---- */
+    #referral .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: .6rem;
+        margin: 0;
+    }
+
+    #referral .row > [class*="col-"] {
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
+    }
+
+    #referral .nx-panel { padding: .85rem .75rem; border-radius: 13px; }
+    #referral .nx-eyebrow { font-size: .55rem; letter-spacing: .08em; margin-bottom: .45rem; }
+    #referral .nx-eyebrow::before { width: 12px; }
+    #referral .nx-panel__title { font-size: .88rem; line-height: 1.2; }
+    #referral .nx-panel__desc { font-size: .64rem; margin-top: .3rem; }
+    #referral .nx-bullets { margin-top: .6rem; gap: .35rem; }
+    #referral .nx-bullet { font-size: .6rem; gap: .35rem; }
+    #referral .nx-bullet i { font-size: .72rem; }
+    #referral .nx-reflabel { margin-top: .7rem; font-size: .52rem; }
+    #referral .nx-refbox { margin-top: .35rem; gap: .35rem; }
+    #referral .nx-refbox input { flex: 1 1 100%; padding: .45rem .55rem; font-size: .58rem; border-radius: 8px; }
+
+    #referral .nx-btn {
+        flex: 1 1 100%;
+        justify-content: center;
+        padding: .5rem .5rem;
+        font-size: .62rem;
+        border-radius: 8px;
+        gap: .25rem;
+    }
+
+    #referral .nx-spinwheel-wrap { width: 118px; margin-bottom: .7rem; }
+    #referral .nx-spinwheel-rotor { box-shadow: 0 0 0 5px #8a5a10, 0 12px 22px -12px rgba(0, 0, 0, .7); }
+    #referral .nx-spinwheel-hub { width: 30px; height: 30px; font-size: .7rem; border-width: 3px; }
+    #referral .nx-spinwheel-pointer { top: -8px; border-left-width: 8px; border-right-width: 8px; border-top-width: 15px; }
+
+    /* ---- trust badges across, not down ---- */
+    .nx-trust {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: .5rem;
+        padding: .8rem .6rem;
+    }
+
+    .nx-trust__item {
+        flex: unset;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: .3rem;
+    }
+
+    .nx-trust__item i { font-size: .95rem; }
+    .nx-trust__item b { font-size: .6rem; line-height: 1.2; }
+    .nx-trust__item span { font-size: .52rem; line-height: 1.25; }
+
+    /* ---- footer shrinks to the payment strip ---- */
+    .nx-footer {
+        padding: 1.6rem 0 6rem;
+        border-top: none;
+    }
+
+    .nx-foot-brand,
+    .nx-foot-links { display: none; }
+
+    .nx-foot-pay { width: 100%; max-width: 100%; }
+
+    .nx-foot-pay h6 {
+        margin-bottom: .55rem;
+        font-size: .58rem;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        color: var(--nx-text-dim);
+        text-align: center;
+    }
+
+    .nx-pay-badges { justify-content: center; gap: .3rem; }
+    .nx-pay-badge { padding: .3rem .55rem; font-size: .58rem; }
+
+    .nx-footer-bottom {
+        margin-top: 1.1rem;
+        padding-top: .9rem;
+        font-size: .58rem;
+        gap: .2rem;
+    }
+
+    .nx-footer-bottom span:last-child { display: none; }
+}
+
+/* Small handsets keep the same shape — only the hero copy eases off, so the
+   layout never collapses back into a single stacked column. */
+@media (max-width: 360px) {
+    .nx-hero__title { font-size: 1.1rem; }
+    .nx-hero__desc { font-size: .72rem; }
+    .nx-hero__pill { font-size: .58rem; padding: .28rem .6rem; }
+    .nx-hero__mini-item { padding: .6rem .5rem; }
+    .nx-hero__mini-title { font-size: .7rem; }
+    .nx-hero__mini-sub { font-size: .6rem; }
+    .nx-dock__brand small { display: none; }
+}
+
+/* phone layout — final spacing pass */
+@media (max-width: 767px) {
+
+    /* the shortlist reads as one screenful, so the gaps between its parts
+       tighten to match */
+    .nx-section { padding: 1.5rem 0; }
+    .nx-head { margin-bottom: 1.1rem; }
+    .nx-title { font-size: 1.15rem; line-height: 1.25; }
+    .nx-sub { font-size: .72rem; margin-top: .3rem; }
+    .nx-eyebrow { font-size: .58rem; margin-bottom: .45rem; }
+    .nx-eyebrow::before { width: 14px; }
+
+    .nx-plans__note { margin-top: .9rem; font-size: .62rem; padding: .38rem .8rem; }
+
+    /* arrows clear of the cards they scroll */
+    .nx-plan-nav--prev { left: -10px; }
+    .nx-plan-nav--next { right: -10px; }
+
+    .nx-footer { padding-top: .5rem; }
+}
+
+/* phone hero — close the gap around the artwork */
+@media (max-width: 767px) {
+
+    /* a wider column lets the handset render large enough to carry the section,
+       instead of floating in the middle of its own empty space */
+    .nx-hero .row { grid-template-columns: minmax(0, 1fr) 46%; column-gap: .3rem; }
+
+    .nx-hero { padding-top: 5.4rem; padding-bottom: 1rem; }
+
+    .nx-hero__title { font-size: 1.18rem; }
+
+    /* the admin can write any length here; on a phone it is trimmed to three
+       lines so the copy column stays close to the artwork's height */
+    .nx-hero__desc {
+        font-size: .76rem;
+        line-height: 1.45;
+        margin-top: .45rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .nx-hero__pill { margin-bottom: .7rem; padding: .3rem .7rem; font-size: .63rem; }
+
+    .nx-hero__cta { margin-top: .85rem; gap: .4rem; }
+    .nx-hero__cta .nx-btn { padding: .6rem .9rem; font-size: .78rem; }
+
+    /* the artwork now fills its column edge to edge */
+    .nx-hero__visual { grid-row: 1 / 5; align-self: center; }
+    .nx-scene-mob { width: 100%; max-width: none; }
+
+    .nx-hero__mini { margin-top: 1rem; gap: .5rem; }
+    .nx-hero__mini-item { padding: .7rem .65rem; gap: .4rem; }
+}
+
+@media (max-width: 767px) {
+    /* the badge reads as one line or not at all */
+    .nx-hero__pill { white-space: nowrap; font-size: .58rem; letter-spacing: .02em; }
+    .nx-hero__pill i { font-size: .7rem; }
+}

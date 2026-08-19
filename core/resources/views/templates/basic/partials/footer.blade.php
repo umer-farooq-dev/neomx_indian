@@ -8,7 +8,7 @@
 <footer class="nx-footer">
     <div class="nx-container">
         <div class="row gy-4">
-            <div class="col-lg-4 col-md-6">
+            <div class="col-lg-4 col-md-6 nx-foot-brand">
                 <a href="{{ route('home') }}" class="d-inline-block mb-3"><img src="{{ siteLogo() }}" alt="{{ gs('site_name') }}" style="max-height:44px;"></a>
                 <p>{{ __(@$seoData->data_values->description) }}</p>
                 <div class="nx-social mt-3">
@@ -17,7 +17,7 @@
                     @endforeach
                 </div>
             </div>
-            <div class="col-lg-2 col-md-6">
+            <div class="col-lg-2 col-md-6 nx-foot-links">
                 <h6>@lang('Quick Links')</h6>
                 <ul>
                     <li><a href="{{ route('home') }}">@lang('Home')</a></li>
@@ -27,7 +27,7 @@
                     <li><a href="{{ route('home') }}#faq">@lang('FAQ')</a></li>
                 </ul>
             </div>
-            <div class="col-lg-2 col-md-6">
+            <div class="col-lg-2 col-md-6 nx-foot-links">
                 <h6>@lang('Company')</h6>
                 <ul>
                     <li><a href="{{ route('home') }}#about">@lang('About Us')</a></li>
@@ -36,7 +36,7 @@
                     @endforeach
                 </ul>
             </div>
-            <div class="col-lg-2 col-md-6">
+            <div class="col-lg-2 col-md-6 nx-foot-links">
                 <h6>@lang('Support')</h6>
                 <ul>
                     @if (gs('social_number'))
@@ -48,7 +48,7 @@
                     <li><a href="{{ auth()->check() ? route('ticket.open') : route('contact') }}">@lang('24x7 Live Support')</a></li>
                 </ul>
             </div>
-            <div class="col-lg-2 col-md-6">
+            <div class="col-lg-2 col-md-6 nx-foot-pay">
                 <h6>@lang('Payment Methods')</h6>
                 <div class="nx-pay-badges">
                     @forelse ($gatewayShowcase as $item)
