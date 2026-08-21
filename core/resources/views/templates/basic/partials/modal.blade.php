@@ -3,6 +3,12 @@
     $mobileCode = @implode(',', $info['code']);
     $countries = json_decode(file_get_contents(resource_path('views/partials/country.json')));
     $policyPages = getContent('policy_pages.element', false, null, true);
+
+    // Without this the browser falls back to the first option alphabetically
+    // (Afghanistan). Prefer the visitor's own country when the IP lookup knows
+    // it, otherwise India, which is where the platform operates.
+    $defaultCountryCode = $mobileCode && isset($countries->$mobileCode) ? $mobileCode : 'IN';
+    $defaultCountry = $countries->$defaultCountryCode->country ?? null;
 @endphp
 
 <!-- Login -->
@@ -137,7 +143,8 @@
                                 <select name="country" class="form--control reg-country" required>
                                     @foreach ($countries as $key => $country)
                                         <option data-mobile_code="{{ $country->dial_code }}" data-code="{{ $key }}"
-                                            value="{{ $country->country }}" @selected(old('country') == $country->country)>
+                                            value="{{ $country->country }}"
+                                            @selected(old('country', $defaultCountry) == $country->country)>
                                             {{ __($country->country) }}
                                         </option>
                                     @endforeach
@@ -714,11 +721,8 @@
             }
 
             if ($('.reg-country').length) {
-                @if ($mobileCode)
-                    if (!$('.reg-country option[data-code="{{ $mobileCode }}"]:selected').length && !'{{ old('country') }}') {
-                        $('.reg-country option[data-code="{{ $mobileCode }}"]').first().prop('selected', true);
-                    }
-                @endif
+                // the correct option is already marked server-side, so this just
+                // copies its dial code into the hidden fields on first paint
                 syncRegCountry();
                 $('.reg-country').on('change', syncRegCountry);
             }
