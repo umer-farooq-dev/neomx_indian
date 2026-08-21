@@ -241,10 +241,8 @@ class UserController extends Controller
             'fullname' => 'required|string|max:80',
             'email'    => 'required|string|email|unique:users,email,' . $user->id,
             'password' => ['required', 'confirmed', $passwordValidation],
-            'dob'      => 'required|date|before:' . now()->subYears(18)->toDateString(),
             'referBy'  => 'nullable|string|exists:users,username',
         ], [
-            'dob.before'     => 'You must be at least 18 years old to register',
             'referBy.exists' => 'This referral code does not belong to any member',
         ]);
 
@@ -263,7 +261,6 @@ class UserController extends Controller
         $user->lastname  = $parts[1] ?? '';
         $user->email     = strtolower($request->email);
         $user->password  = Hash::make($request->password);
-        $user->dob       = $request->dob;
         $user->ev        = gs('ev') ? Status::NO : Status::YES;
         $user->profile_complete = Status::YES;
         $user->save();

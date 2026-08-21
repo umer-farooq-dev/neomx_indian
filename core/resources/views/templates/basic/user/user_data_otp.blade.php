@@ -35,11 +35,6 @@
                                 <input type="password" class="form-control form--control" name="password_confirmation" required>
                             </div>
                             <div class="form-group col-sm-6">
-                                <label class="form-label">@lang('Date of Birth')</label>
-                                <input type="date" class="form-control form--control" name="dob"
-                                    value="{{ old('dob') }}" max="{{ now()->subYears(18)->toDateString() }}" required>
-                            </div>
-                            <div class="form-group col-sm-6">
                                 <label class="form-label">@lang('Referral Code') <span class="text-white-50">(@lang('optional'))</span></label>
                                 <input type="text" class="form-control form--control" name="referBy"
                                     value="{{ old('referBy') }}" @disabled($user->ref_by) placeholder="@lang('Enter referral code')">

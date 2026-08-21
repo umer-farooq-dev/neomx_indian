@@ -181,14 +181,6 @@
 
                         <div class="col-lg-6">
                             <div class="form-group">
-                                <label>@lang('Date of Birth')</label>
-                                <input type="date" class="form--control" name="dob" value="{{ old('dob') }}"
-                                    max="{{ now()->subYears(18)->toDateString() }}" required>
-                            </div>
-                        </div>
-
-                        <div class="col-lg-6">
-                            <div class="form-group">
                                 <label>@lang('Referral Code') <span class="text-white-50">(@lang('optional'))</span></label>
                                 <input type="text" name="referBy" id="referenceBy" class="form--control"
                                     value="{{ old('referBy', session()->get('reference')) }}"

@@ -67,13 +67,11 @@ class RegisterController extends Controller
             'mobile'       => ['required', 'regex:/^([0-9]*)$/', Rule::unique('users')->where('dial_code', @$data['mobile_code'])],
             'email'        => 'required|string|email|unique:users',
             'password'     => ['required', 'confirmed', $passwordValidation],
-            'dob'          => 'required|date|before:' . now()->subYears(18)->toDateString(),
             'referBy'      => 'nullable|string|exists:users,username',
             'captcha'      => 'sometimes|required',
             'agree'        => $agree,
         ], [
             'fullname.required' => 'The full name field is required',
-            'dob.before'        => 'You must be at least 18 years old to register',
             'referBy.exists'    => 'This referral code does not belong to any member',
             'agree.size'        => 'You must accept all the policies to continue',
         ]);
@@ -132,7 +130,6 @@ class RegisterController extends Controller
         $user->lastname     = $parts[1] ?? '';
         $user->username     = $this->generateUsername();
         $user->password     = Hash::make($data['password']);
-        $user->dob          = $data['dob'];
         $user->mobile       = $data['mobile'];
         $user->dial_code    = $data['mobile_code'];
         $user->country_code = $data['country_code'];
