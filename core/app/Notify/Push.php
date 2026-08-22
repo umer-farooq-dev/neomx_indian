@@ -60,6 +60,20 @@ class Push extends NotifyProcess implements Notifiable{
         if (gs('pn') && $message) {
             try {
                 $credentialsFilePath = getFilePath('pushConfig').'/push_config.json';
+
+                if (!file_exists($credentialsFilePath)) {
+                    throw new \Exception('Push notifications are on but the Firebase service account file is missing. Upload it under Notification Setting > Push Notification.');
+                }
+
+                // A service account only works against its own project. Catching
+                // the mismatch here beats every send silently failing at Google.
+                $serviceAccount = json_decode(file_get_contents($credentialsFilePath));
+                $projectId      = gs('firebase_config')->projectId ?? null;
+
+                if (($serviceAccount->project_id ?? null) !== $projectId) {
+                    throw new \Exception('Firebase project mismatch: the service account belongs to "'.($serviceAccount->project_id ?? 'unknown').'" but the site is configured for "'.($projectId ?: 'unset').'". Both must come from the same Firebase project.');
+                }
+
                 $client = new \Google_Client();
                 $client->setAuthConfig($credentialsFilePath);
                 $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
@@ -82,19 +96,33 @@ class Push extends NotifyProcess implements Notifiable{
                     'click_action'=>$this->redirectUrl,
                     'app_click_action'=>$this->redirectForApp($this->templateName)
                 ];
+                $failures = [];
+
                 foreach ($this->toAddress as $toAddress) {
                     $data['token'] = $toAddress;
                     $payloadData['message'] = $data;
                     $payload = json_encode($payloadData);
                     $ch = curl_init();
-                    curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/v1/projects/'.gs('firebase_config')->projectId.'/messages:send');
+                    curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/v1/projects/'.$projectId.'/messages:send');
                     curl_setopt($ch, CURLOPT_POST, true);
                     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
                     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
                     curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-                    curl_exec($ch);
+                    $response = curl_exec($ch);
+                    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
                     curl_close($ch);
+
+                    // Google answers every send; without reading it a wrong key or
+                    // a stale device token looks exactly like success.
+                    if ($httpCode < 200 || $httpCode >= 300) {
+                        $detail = json_decode($response);
+                        $failures[] = $detail->error->message ?? ('HTTP '.$httpCode);
+                    }
+                }
+
+                if ($failures) {
+                    throw new \Exception('Push delivery failed: '.implode(' | ', array_unique($failures)));
                 }
             } catch(\Exception $e){
                 $this->createErrorLog($e->getMessage());

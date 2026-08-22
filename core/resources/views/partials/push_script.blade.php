@@ -1,7 +1,5 @@
-<script src="{{ asset('assets/global/js/firebase/firebase-app.js') }}?v=12171"></script>
-<script src="{{ asset('assets/global/js/firebase/firebase-auth-compat.js') }}?v=12171"></script>
-<script src="{{ asset('assets/global/js/firebase/firebase-messaging.js') }}?v=12171"></script>
-
+{{-- The Firebase SDK itself is loaded by the layout, since phone-OTP sign-in
+     needs it too. This file only drives the messaging side. --}}
 <script>
     "use strict";
 
@@ -37,7 +35,10 @@
     if (permission != 'denied' && firebaseConfig) {
 
         //Firebase
-        firebase.initializeApp(firebaseConfig);
+        // the OTP modal may have initialised the app already
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         const messaging = firebase.messaging();
 
         navigator.serviceWorker.register("{{ asset('assets/global/js/firebase/firebase-messaging-sw.js') }}")

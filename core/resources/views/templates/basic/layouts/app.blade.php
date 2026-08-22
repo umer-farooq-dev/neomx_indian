@@ -84,6 +84,15 @@
     @php echo loadExtension('tawk-chat') @endphp
     @include('partials.notify')
 
+    {{-- The SDK is shared by push notifications and phone-OTP sign-in, so it is
+         loaded whenever Firebase is configured rather than being tied to the
+         push toggle alone. --}}
+    @if (@gs('firebase_config')->apiKey)
+        <script src="{{ asset('assets/global/js/firebase/firebase-app.js') }}?v=12171"></script>
+        <script src="{{ asset('assets/global/js/firebase/firebase-auth-compat.js') }}?v=12171"></script>
+        <script src="{{ asset('assets/global/js/firebase/firebase-messaging.js') }}?v=12171"></script>
+    @endif
+
     @if (gs('pn'))
         @include('partials.push_script')
     @endif

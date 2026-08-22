@@ -37,6 +37,7 @@ Route::namespace('User\Auth')->name('user.')->group(function () {
         Route::controller('MobileOtpController')->prefix('otp')->name('otp.')->group(function () {
             Route::post('send', 'sendOtp')->name('send');
             Route::post('verify', 'verifyOtp')->name('verify');
+            Route::post('firebase-verify', 'firebaseVerify')->name('firebase.verify');
         });
     });
 });

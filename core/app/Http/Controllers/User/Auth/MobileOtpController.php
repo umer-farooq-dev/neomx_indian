@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User\Auth;
 
 use App\Constants\Status;
+use App\Lib\FirebaseAuthVerifier;
 use App\Http\Controllers\Controller;
 use App\Models\AdminNotification;
 use App\Models\User;
@@ -178,6 +179,146 @@ class MobileOtpController extends Controller
         $userLogin->browser = @$userAgent['browser'];
         $userLogin->os      = @$userAgent['os_platform'];
         $userLogin->save();
+
+        return response()->json([
+            'status'   => 'success',
+            'message'  => 'Login successful',
+            'redirect' => route('user.home'),
+        ]);
+    }
+
+    /**
+     * Finds the account for a verified number, creating it on first sight.
+     * Returns null when registration is closed and the number is new.
+     */
+    protected function findOrCreateMobileUser($dialCode, $mobile, $countryCode = null)
+    {
+        $user = User::where('mobile', $mobile)->where('dial_code', $dialCode)->first();
+
+        if ($user) {
+            return $user;
+        }
+
+        if (!gs('registration')) {
+            return null;
+        }
+
+        $referBy   = session()->get('reference');
+        $referUser = $referBy ? User::where('username', $referBy)->first() : null;
+
+        $user                   = new User();
+        $user->firstname        = 'Member';
+        $user->lastname         = '';
+        $user->username         = $this->generateUsername();
+        $user->email            = $this->generatePlaceholderEmail($dialCode, $mobile);
+        $user->password         = Hash::make(getTrx(16));
+        $user->dial_code        = $dialCode;
+        $user->country_code     = $countryCode;
+        $user->mobile           = $mobile;
+        $user->ref_by           = $referUser ? $referUser->id : 0;
+        $user->provider         = 'mobile_otp';
+        $user->status           = Status::USER_ACTIVE;
+        $user->profile_complete = Status::NO;
+        $user->kv               = gs('kv') ? Status::NO : Status::YES;
+        $user->ev               = Status::YES;
+        $user->sv               = Status::NO;
+        $user->ts               = Status::DISABLE;
+        $user->tv               = Status::ENABLE;
+        $user->save();
+
+        $adminNotification            = new AdminNotification();
+        $adminNotification->user_id   = $user->id;
+        $adminNotification->title     = 'New member registered';
+        $adminNotification->click_url = urlPath('admin.users.detail', $user->id);
+        $adminNotification->save();
+
+        return $user;
+    }
+
+    /**
+     * Marks the number proven, signs the user in and records the login.
+     */
+    protected function completeMobileLogin($user)
+    {
+        $user->sv               = Status::VERIFIED;
+        $user->ver_code         = null;
+        $user->ver_code_send_at = null;
+        $user->save();
+
+        Auth::login($user);
+
+        $ip        = getRealIP();
+        $exist     = UserLogin::where('user_ip', $ip)->first();
+        $userLogin = new UserLogin();
+
+        if ($exist) {
+            $userLogin->longitude    = $exist->longitude;
+            $userLogin->latitude     = $exist->latitude;
+            $userLogin->city         = $exist->city;
+            $userLogin->country_code = $exist->country_code;
+            $userLogin->country      = $exist->country;
+        } else {
+            $info                    = json_decode(json_encode(getIpInfo()), true);
+            $userLogin->longitude    = @implode(',', $info['long']);
+            $userLogin->latitude     = @implode(',', $info['lat']);
+            $userLogin->city         = @implode(',', $info['city']);
+            $userLogin->country_code = @implode(',', $info['code']);
+            $userLogin->country      = @implode(',', $info['country']);
+        }
+
+        $userAgent          = osBrowser();
+        $userLogin->user_id = $user->id;
+        $userLogin->user_ip = $ip;
+        $userLogin->browser = @$userAgent['browser'];
+        $userLogin->os      = @$userAgent['os_platform'];
+        $userLogin->save();
+    }
+
+    /**
+     * Firebase Phone Auth path. Google sends and checks the code in the
+     * browser; all that reaches us is the signed ID token, which we verify
+     * against Google's public keys before trusting the number inside it.
+     *
+     * This is what makes Indian numbers work: Google is registered on India's
+     * DLT platform, whereas a raw Twilio send is blocked by the carriers.
+     */
+    public function firebaseVerify(Request $request)
+    {
+        $request->validate([
+            'id_token'     => 'required|string',
+            'dial_code'    => 'required',
+            'mobile'       => 'required|regex:/^([0-9]*)$/',
+            'country_code' => 'nullable|string|size:2',
+        ]);
+
+        try {
+            $payload = FirebaseAuthVerifier::verify($request->id_token);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+
+        // the token is the authority on which number was proven, so the form
+        // values only count if they agree with it
+        $claimed = '+' . $request->dial_code . $request->mobile;
+
+        if ($payload->phone_number !== $claimed) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'The verified number does not match the number entered',
+            ]);
+        }
+
+        $user = $this->findOrCreateMobileUser($request->dial_code, $request->mobile, $request->country_code);
+
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'New account registration is currently disabled']);
+        }
+
+        if (!$user->status) {
+            return response()->json(['status' => 'error', 'message' => 'Your account has been banned. Reason: ' . $user->ban_reason]);
+        }
+
+        $this->completeMobileLogin($user);
 
         return response()->json([
             'status'   => 'success',

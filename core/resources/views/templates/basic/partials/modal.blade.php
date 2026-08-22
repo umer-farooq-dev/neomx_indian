@@ -325,6 +325,9 @@
                         <span class="otp-send-label">@lang('Send OTP')</span>
                         <span class="otp-send-spinner spinner-border spinner-border-sm d-none" role="status"></span>
                     </button>
+
+                    {{-- Firebase anchors its invisible reCAPTCHA here --}}
+                    <div id="otpRecaptcha"></div>
                 </form>
 
                 {{-- Step 2: Enter Code --}}
@@ -407,6 +410,70 @@
                 }, 1000);
             }
 
+            // Firebase Phone Auth sends and checks the code itself, from the
+            // browser. We prefer it when configured because Google is registered
+            // on India's DLT platform, which a direct SMS gateway is not.
+            const otpFirebaseConfig = @json(gs('firebase_config'));
+            const useFirebaseOtp = !!(otpFirebaseConfig && otpFirebaseConfig.apiKey &&
+                otpFirebaseConfig.projectId && typeof firebase !== 'undefined' && firebase.auth);
+
+            let otpConfirmation = null;
+            let otpRecaptcha = null;
+
+            function otpFirebaseAuth() {
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(otpFirebaseConfig);
+                }
+                if (!otpRecaptcha) {
+                    otpRecaptcha = new firebase.auth.RecaptchaVerifier('otpRecaptcha', { size: 'invisible' });
+                }
+                return firebase.auth();
+            }
+
+            function otpSendDone() {
+                $('.otp-send-btn').prop('disabled', false);
+                $('.otp-send-label').removeClass('d-none');
+                $('.otp-send-spinner').addClass('d-none');
+            }
+
+            function otpShowCodeStep(dialCode, mobile) {
+                $('#otpSendForm').addClass('d-none');
+                $('#otpVerifyForm').removeClass('d-none');
+                $('.otp-target').text('+' + dialCode + ' ' + mobile);
+                $('.otp-digit').val('').first().trigger('focus');
+                startResendCooldown(120);
+            }
+
+            function sendOtpViaFirebase(dialCode, countryCode, mobile) {
+                let auth;
+                try {
+                    auth = otpFirebaseAuth();
+                } catch (err) {
+                    otpSendDone();
+                    notify('error', 'Could not start phone verification: ' + err.message);
+                    return;
+                }
+
+                auth.signInWithPhoneNumber('+' + dialCode + mobile, otpRecaptcha)
+                    .then(function(confirmation) {
+                        otpConfirmation = confirmation;
+                        otpSendDone();
+                        otpShowCodeStep(dialCode, mobile);
+                        notify('success', 'Verification code sent to your mobile number');
+                    })
+                    .catch(function(err) {
+                        otpSendDone();
+                        // a spent reCAPTCHA cannot be reused, so drop it and let
+                        // the next attempt build a fresh one
+                        if (otpRecaptcha) {
+                            try { otpRecaptcha.clear(); } catch (e) {}
+                            otpRecaptcha = null;
+                            $('#otpRecaptcha').empty();
+                        }
+                        notify('error', err.message || 'Could not send the verification code');
+                    });
+            }
+
             function sendOtp() {
                 let dialCode = $('#otpSendForm [name=dial_code]').val();
                 let countryCode = $('#otpSendForm [name=country_code]').val();
@@ -421,6 +488,11 @@
                 $btn.prop('disabled', true);
                 $('.otp-send-label').addClass('d-none');
                 $('.otp-send-spinner').removeClass('d-none');
+
+                if (useFirebaseOtp) {
+                    sendOtpViaFirebase(dialCode, countryCode, mobile);
+                    return;
+                }
 
                 $.post('{{ route('user.otp.send') }}', {
                     dial_code: dialCode,
@@ -522,6 +594,51 @@
                 sendOtp();
             });
 
+            function otpVerifyDone() {
+                $('.otp-verify-btn').prop('disabled', false);
+                $('.otp-verify-label').removeClass('d-none');
+                $('.otp-verify-spinner').addClass('d-none');
+            }
+
+            // Firebase checks the code, then hands us a signed token naming the
+            // proven number. The server re-verifies that token before trusting it.
+            function verifyOtpViaFirebase(code) {
+                if (!otpConfirmation) {
+                    otpVerifyDone();
+                    notify('error', 'Please request a new code');
+                    return;
+                }
+
+                otpConfirmation.confirm(code)
+                    .then(function(result) {
+                        return result.user.getIdToken();
+                    })
+                    .then(function(idToken) {
+                        return $.post('{{ route('user.otp.firebase.verify') }}', {
+                            id_token: idToken,
+                            dial_code: $('#otpSendForm [name=dial_code]').val(),
+                            country_code: $('#otpSendForm [name=country_code]').val(),
+                            mobile: $('#otpSendForm [name=mobile]').val(),
+                            _token: '{{ csrf_token() }}'
+                        });
+                    })
+                    .then(function(response) {
+                        if (response.status === 'success') {
+                            notify('success', response.message);
+                            window.location.href = response.redirect;
+                        } else {
+                            otpVerifyDone();
+                            notify('error', response.message);
+                            $('.otp-digit').val('').first().trigger('focus');
+                        }
+                    })
+                    .catch(function(err) {
+                        otpVerifyDone();
+                        notify('error', (err && err.message) || 'Verification failed');
+                        $('.otp-digit').val('').first().trigger('focus');
+                    });
+            }
+
             $('#otpVerifyForm').on('submit', function(e) {
                 e.preventDefault();
 
@@ -535,6 +652,11 @@
                 $btn.prop('disabled', true);
                 $('.otp-verify-label').addClass('d-none');
                 $('.otp-verify-spinner').removeClass('d-none');
+
+                if (useFirebaseOtp) {
+                    verifyOtpViaFirebase(code);
+                    return;
+                }
 
                 $.post('{{ route('user.otp.verify') }}', {
                     dial_code: $('#otpSendForm [name=dial_code]').val(),
