@@ -261,7 +261,15 @@ class PaymentController extends Controller
         if ($data->method_code > 999) {
             $pageTitle = 'Confirm Deposit';
             $method    = $data->gatewayCurrency();
-            $gateway   = $method->method;
+
+            // the gateway can be edited or removed while a deposit sits waiting;
+            // send the user back to choose again rather than crashing on it
+            if (!$method || !$method->method) {
+                $notify[] = ['error', 'This payment method is no longer available. Please start the deposit again.'];
+                return to_route('user.deposit.index')->withNotify($notify);
+            }
+
+            $gateway = $method->method;
             return view('Template::user.payment.manual', compact('data', 'pageTitle', 'method', 'gateway'));
         }
         abort(404);
@@ -273,7 +281,13 @@ class PaymentController extends Controller
         $data  = Deposit::with('gateway')->where('status', Status::PAYMENT_INITIATE)->where('trx', $track)->first();
         abort_if(!$data, 404);
         $gatewayCurrency = $data->gatewayCurrency();
-        $gateway         = $gatewayCurrency->method;
+
+        if (!$gatewayCurrency || !$gatewayCurrency->method) {
+            $notify[] = ['error', 'This payment method is no longer available. Please start the deposit again.'];
+            return to_route('user.deposit.index')->withNotify($notify);
+        }
+
+        $gateway = $gatewayCurrency->method;
         $formData        = $gateway->form->form_data;
 
         $formProcessor  = new FormProcessor();

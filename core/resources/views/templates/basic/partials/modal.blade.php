@@ -594,6 +594,24 @@
                 sendOtp();
             });
 
+            function otpErrorText(err) {
+                if (!err) return 'Verification failed';
+
+                // a Firebase error carries its own message
+                if (err.message) return err.message;
+
+                // a rejected jQuery request carries the server's response instead
+                let body = err.responseJSON;
+                if (body) {
+                    if (body.message) return body.message;
+                    if (body.errors) return Object.values(body.errors)[0][0];
+                }
+                if (err.status === 419) return 'Your session expired. Please refresh the page and try again.';
+                if (err.status) return 'Server error (' + err.status + '). Please try again.';
+
+                return 'Verification failed';
+            }
+
             function otpVerifyDone() {
                 $('.otp-verify-btn').prop('disabled', false);
                 $('.otp-verify-label').removeClass('d-none');
@@ -634,7 +652,7 @@
                     })
                     .catch(function(err) {
                         otpVerifyDone();
-                        notify('error', (err && err.message) || 'Verification failed');
+                        notify('error', otpErrorText(err));
                         $('.otp-digit').val('').first().trigger('focus');
                     });
             }

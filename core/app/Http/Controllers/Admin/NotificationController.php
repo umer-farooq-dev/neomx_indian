@@ -326,6 +326,7 @@ class NotificationController extends Controller
             'messagingSenderId' => 'required',
             'appId'             => 'required',
             'measurementId'     => 'required',
+            'vapidKey'          => 'nullable|string',
         ]);
         $data = [
             'apiKey'            => $request->apiKey,
@@ -335,6 +336,9 @@ class NotificationController extends Controller
             'messagingSenderId' => $request->messagingSenderId,
             'appId'             => $request->appId,
             'measurementId'     => $request->measurementId,
+            // Web Push certificate key pair, from Cloud Messaging settings.
+            // Browsers will not hand out a device token without it.
+            'vapidKey'          => $request->vapidKey,
         ];
         $general                  = gs();
         $general->firebase_config = $data;

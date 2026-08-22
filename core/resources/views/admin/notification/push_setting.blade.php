@@ -59,6 +59,15 @@
                                     <input type="text" class="form-control" placeholder="@lang('Measurement Id')" name="measurementId" value="{{ @gs('firebase_config')->measurementId }}" required>
                                 </div>
                             </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label>@lang('Web Push Certificate Key Pair')</label>
+                                    <input type="text" class="form-control" placeholder="@lang('Key pair')" name="vapidKey" value="{{ @gs('firebase_config')->vapidKey }}">
+                                    <small class="text-muted">
+                                        @lang('Firebase Console → Project Settings → Cloud Messaging → Web Push certificates. Browsers will not issue a device token without this, so push stays silent until it is set.')
+                                    </small>
+                                </div>
+                            </div>
                         </div>
                         <button type="submit" class="btn btn--primary w-100 h-45">@lang('Submit')</button>
                     </div>

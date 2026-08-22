@@ -41,48 +41,59 @@
         }
         const messaging = firebase.messaging();
 
+        // SDK v12 removed useServiceWorker(), requestPermission() and the
+        // no-argument getToken(); the registration and the Web Push key are
+        // passed straight to getToken() instead.
         navigator.serviceWorker.register("{{ asset('assets/global/js/firebase/firebase-messaging-sw.js') }}")
-
             .then((registration) => {
-                messaging.useServiceWorker(registration);
 
-                function initFirebaseMessagingRegistration() {
-                    messaging
-                        .requestPermission()
-                        .then(function() {
-                            return messaging.getToken()
-                        })
-                        .then(function(token) {
-                            $.ajax({
-                                url: '{{ route('user.add.device.token') }}',
-                                type: 'POST',
-                                data: {
-                                    token: token,
-                                    '_token': "{{ csrf_token() }}"
-                                },
-                                success: function(response) {},
-                                error: function(err) {},
+                function registerDeviceToken() {
+                    Notification.requestPermission().then(function(result) {
+                        if (result !== 'granted') {
+                            return;
+                        }
+
+                        var options = { serviceWorkerRegistration: registration };
+                        if (firebaseConfig.vapidKey) {
+                            options.vapidKey = firebaseConfig.vapidKey;
+                        }
+
+                        messaging.getToken(options).then(function(token) {
+                            if (!token) {
+                                console.warn('Push: Firebase returned no device token.');
+                                return;
+                            }
+                            $.post('{{ route('user.add.device.token') }}', {
+                                token: token,
+                                _token: "{{ csrf_token() }}"
+                            }).fail(function(xhr) {
+                                console.error('Push: could not save the device token.', xhr.status);
                             });
-                        }).catch(function(error) {});
+                        }).catch(function(error) {
+                            // silence here is what hid the real problem before
+                            console.error('Push: could not get a device token.', error && error.message ? error.message : error);
+                        });
+                    });
                 }
 
                 messaging.onMessage(function(payload) {
-                    const title = payload.notification.title;
-                    const options = {
-                        body: payload.notification.body,
-                        icon: payload.data.icon,
-                        image: payload.notification.image,
-                        click_action: payload.data.click_action,
+                    var notification = payload.notification || {};
+                    var data = payload.data || {};
+                    new Notification(notification.title || '', {
+                        body: notification.body || '',
+                        icon: data.icon,
+                        image: notification.image,
                         vibrate: [200, 100, 200]
-                    };
-                    new Notification(title, options);
+                    });
                 });
 
                 //For authenticated users
                 if (authenticated) {
-                    initFirebaseMessagingRegistration();
+                    registerDeviceToken();
                 }
-
+            })
+            .catch(function(error) {
+                console.error('Push: service worker registration failed.', error && error.message ? error.message : error);
             });
 
     }
