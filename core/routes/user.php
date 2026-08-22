@@ -15,6 +15,7 @@ Route::namespace('User\Auth')->name('user.')->group(function () {
             Route::get('register', 'showRegistrationForm')->name('register');
             Route::post('register', 'register');
             Route::post('check-user', 'checkUser')->name('checkUser')->withoutMiddleware('guest');
+            Route::post('register/precheck', 'precheck')->name('register.precheck');
         });
 
         Route::controller('ForgotPasswordController')->prefix('password')->name('password.')->group(function () {

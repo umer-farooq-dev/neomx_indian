@@ -211,10 +211,40 @@
                         @endif
 
                     </div>
-                    <button type="submit" id="recaptcha" class="btn btn--base w-100">@lang('Register')</button>
+
+                    {{-- Filled in once Firebase has proven the number; the server
+                         refuses to create the account without it. --}}
+                    <input type="hidden" name="id_token" class="reg-id-token">
+                    <div id="regRecaptcha"></div>
+
+                    <button type="submit" id="recaptcha" class="btn btn--base w-100 reg-submit-btn">
+                        <span class="reg-submit-label">@lang('Register')</span>
+                        <span class="reg-submit-spinner spinner-border spinner-border-sm d-none" role="status"></span>
+                    </button>
                     <p class="text-center mt-3"><span class="text-white"> @lang('Have an account')? </span> <a href="#0" class="text--base"
                             data-bs-toggle="modal" data-bs-target="#loginModal" data-bs-dismiss="modal">@lang('Login')</a></p>
                 </form>
+
+                {{-- Code step, shown after the number passes validation --}}
+                <div class="reg-otp-step d-none">
+                    <p class="text-white text-center mb-1">@lang('Enter the 6-digit code sent to')</p>
+                    <p class="text-center reg-otp-target text--base fw-bold mb-3"></p>
+
+                    <div class="otp-digit-group mb-3">
+                        @for ($i = 0; $i < 6; $i++)
+                            <input type="text" inputmode="numeric" maxlength="1" class="otp-digit reg-otp-digit"
+                                @if ($i === 0) autocomplete="one-time-code" @endif>
+                        @endfor
+                    </div>
+
+                    <button type="button" class="btn btn--base w-100 reg-otp-confirm">
+                        <span class="reg-otp-confirm-label">@lang('Verify & Create Account')</span>
+                        <span class="reg-otp-confirm-spinner spinner-border spinner-border-sm d-none" role="status"></span>
+                    </button>
+                    <p class="text-center mt-3">
+                        <a href="#0" class="text--base reg-otp-back">@lang('Change details')</a>
+                    </p>
+                </div>
             </div>
         </div>
     </div>
@@ -714,6 +744,146 @@
                 $('#otpVerifyForm').addClass('d-none');
                 $('#otpSendForm').removeClass('d-none');
             });
+
+            // Registration: prove the number before the account exists.
+            // Without Firebase this whole block stays out of the way and the form
+            // posts exactly as it always did.
+            (function() {
+                if (!useFirebaseOtp) return;
+
+                const $form = $('.registration-form');
+                if (!$form.length) return;
+
+                let regConfirmation = null;
+                let regRecaptcha = null;
+                let regVerified = false;
+
+                function regSubmitDone() {
+                    $('.reg-submit-btn').prop('disabled', false);
+                    $('.reg-submit-label').removeClass('d-none');
+                    $('.reg-submit-spinner').addClass('d-none');
+                }
+
+                function regConfirmDone() {
+                    $('.reg-otp-confirm').prop('disabled', false);
+                    $('.reg-otp-confirm-label').removeClass('d-none');
+                    $('.reg-otp-confirm-spinner').addClass('d-none');
+                }
+
+                function resetRegRecaptcha() {
+                    if (regRecaptcha) {
+                        try { regRecaptcha.clear(); } catch (e) {}
+                        regRecaptcha = null;
+                        $('#regRecaptcha').empty();
+                    }
+                }
+
+                $form.on('submit', function(e) {
+                    if (regVerified) return; // token in hand, let it post
+
+                    e.preventDefault();
+
+                    let dialCode = $form.find('[name=mobile_code]').val();
+                    let mobile = $form.find('[name=mobile]').val();
+
+                    if (!dialCode || !mobile) {
+                        notify('error', 'Please enter your mobile number');
+                        return;
+                    }
+
+                    $('.reg-submit-btn').prop('disabled', true);
+                    $('.reg-submit-label').addClass('d-none');
+                    $('.reg-submit-spinner').removeClass('d-none');
+
+                    // check the rest of the form first, so a duplicate email is
+                    // caught before an SMS is spent on it
+                    $.post('{{ route('user.register.precheck') }}', $form.serialize())
+                        .done(function(response) {
+                            if (response.status !== 'success') {
+                                regSubmitDone();
+                                notify('error', response.message);
+                                return;
+                            }
+
+                            if (!firebase.apps.length) {
+                                firebase.initializeApp(otpFirebaseConfig);
+                            }
+                            if (!regRecaptcha) {
+                                regRecaptcha = new firebase.auth.RecaptchaVerifier('regRecaptcha', { size: 'invisible' });
+                            }
+
+                            firebase.auth().signInWithPhoneNumber('+' + dialCode + mobile, regRecaptcha)
+                                .then(function(confirmation) {
+                                    regConfirmation = confirmation;
+                                    regSubmitDone();
+                                    $form.addClass('d-none');
+                                    $('.reg-otp-step').removeClass('d-none');
+                                    $('.reg-otp-target').text('+' + dialCode + ' ' + mobile);
+                                    $('.reg-otp-digit').val('').first().trigger('focus');
+                                    notify('success', 'Verification code sent to your mobile number');
+                                })
+                                .catch(function(err) {
+                                    regSubmitDone();
+                                    resetRegRecaptcha();
+                                    notify('error', err.message || 'Could not send the verification code');
+                                });
+                        })
+                        .fail(function(xhr) {
+                            regSubmitDone();
+                            notify('error', otpErrorText(xhr));
+                        });
+                });
+
+                $('.reg-otp-confirm').on('click', function() {
+                    let code = $('.reg-otp-digit').map(function() { return $(this).val(); }).get().join('');
+
+                    if (code.length !== 6) {
+                        notify('error', 'Please enter the full 6-digit code');
+                        return;
+                    }
+                    if (!regConfirmation) {
+                        notify('error', 'Please request a new code');
+                        return;
+                    }
+
+                    $('.reg-otp-confirm').prop('disabled', true);
+                    $('.reg-otp-confirm-label').addClass('d-none');
+                    $('.reg-otp-confirm-spinner').removeClass('d-none');
+
+                    regConfirmation.confirm(code)
+                        .then(function(result) {
+                            return result.user.getIdToken();
+                        })
+                        .then(function(idToken) {
+                            $('.reg-id-token').val(idToken);
+                            regVerified = true;
+                            $form.removeClass('d-none');
+                            $form[0].submit(); // native submit, skips the handler above
+                        })
+                        .catch(function(err) {
+                            regConfirmDone();
+                            notify('error', otpErrorText(err));
+                            $('.reg-otp-digit').val('').first().trigger('focus');
+                        });
+                });
+
+                $('.reg-otp-back').on('click', function(e) {
+                    e.preventDefault();
+                    regConfirmation = null;
+                    resetRegRecaptcha();
+                    $('.reg-otp-step').addClass('d-none');
+                    $form.removeClass('d-none');
+                });
+
+                // same auto-advance behaviour as the OTP modal
+                $('.reg-otp-digit').on('input', function() {
+                    let $this = $(this);
+                    $this.val($this.val().replace(/[^0-9]/g, ''));
+                    if ($this.val().length === 1) $this.next('.reg-otp-digit').trigger('focus');
+                }).on('keydown', function(e) {
+                    if (e.key === 'Backspace' && !$(this).val()) $(this).prev('.reg-otp-digit').trigger('focus');
+                });
+            })();
 
         })(jQuery);
     </script>

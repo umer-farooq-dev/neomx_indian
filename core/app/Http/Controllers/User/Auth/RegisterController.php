@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User\Auth;
 
 use App\Constants\Status;
+use App\Lib\FirebaseAuthVerifier;
 use App\Http\Controllers\Controller;
 use App\Lib\Intended;
 use App\Models\AdminNotification;
@@ -79,6 +80,28 @@ class RegisterController extends Controller
         return $validate;
     }
 
+    /**
+     * Runs the form rules without creating anything, so the browser can find out
+     * the email is taken before an OTP is spent on it.
+     */
+    public function precheck(Request $request)
+    {
+        if (!gs('registration')) {
+            return response()->json(['status' => 'error', 'message' => 'Registration is currently disabled']);
+        }
+
+        $validator = $this->validator($request->all());
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+
+        return response()->json(['status' => 'success']);
+    }
+
     public function register(Request $request)
     {
 
@@ -89,6 +112,32 @@ class RegisterController extends Controller
 
         $this->validator($request->all())->validate();
 
+        // With Firebase configured the number is proven before the account is
+        // written, so an abandoned signup leaves no half-made row behind and the
+        // code actually reaches Indian numbers.
+        $data = $request->all();
+        $data['phone_verified'] = false;
+
+        if (@gs('firebase_config')->apiKey) {
+            $request->validate(['id_token' => 'required|string'], [
+                'id_token.required' => 'Please verify your mobile number to continue',
+            ]);
+
+            try {
+                $payload = FirebaseAuthVerifier::verify($request->id_token);
+            } catch (\Exception $e) {
+                $notify[] = ['error', $e->getMessage()];
+                return back()->withNotify($notify)->withInput($request->except('password', 'password_confirmation'));
+            }
+
+            if ($payload->phone_number !== '+' . $request->mobile_code . $request->mobile) {
+                $notify[] = ['error', 'The verified number does not match the number entered'];
+                return back()->withNotify($notify)->withInput($request->except('password', 'password_confirmation'));
+            }
+
+            $data['phone_verified'] = true;
+        }
+
         $request->session()->regenerateToken();
 
         if (!verifyCaptcha()) {
@@ -96,7 +145,7 @@ class RegisterController extends Controller
             return back()->withNotify($notify);
         }
 
-        event(new Registered($user = $this->create($request->all())));
+        event(new Registered($user = $this->create($data)));
 
         $this->guard()->login($user);
 
@@ -137,8 +186,9 @@ class RegisterController extends Controller
         $user->ref_by       = $referUser ? $referUser->id : 0;
         $user->kv = gs('kv') ? Status::NO : Status::YES;
         $user->ev = gs('ev') ? Status::NO : Status::YES;
-        // the number is captured on the form, so it always has to be proven by OTP
-        $user->sv = Status::NO;
+        // the number is captured on the form, so it always has to be proven —
+        // either it already was, via Firebase, or the code step still awaits
+        $user->sv = !empty($data['phone_verified']) ? Status::VERIFIED : Status::NO;
         $user->ts = Status::DISABLE;
         $user->tv = Status::ENABLE;
         // every detail is collected here, so there is no follow-up profile step
