@@ -37,7 +37,9 @@
 @include('partials.notify')
 @stack('script-lib')
 
-<script src="{{ asset('assets/global/js/nicEdit.js') }}"></script>
+{{-- stamped with the file's own timestamp: browsers hold on to this one hard,
+     and a stale copy silently undoes any fix shipped inside it --}}
+<script src="{{ asset('assets/global/js/nicEdit.js') }}?v={{ @filemtime(base_path('../assets/global/js/nicEdit.js')) ?: 1 }}"></script>
 
 <script src="{{asset('assets/global/js/select2.min.js')}}"></script>
 <script src="{{asset('assets/admin/js/app.js')}}"></script>
@@ -54,7 +56,11 @@
             // with a dead key and every upload is refused
             new nicEditor({
                 fullPanel : true,
-                uploadURI : "{{ route('admin.editor.image.upload') }}"
+                {{-- protocol-relative, so the call always follows the page. A
+                     hard-coded http:// here (from APP_URL, or a proxy Laravel
+                     does not trust) is blocked as mixed content on an https site
+                     and the upload fails with nothing on screen. --}}
+                uploadURI : "{{ preg_replace('#^https?:#', '', route('admin.editor.image.upload')) }}"
             }).panelInstance('nicEditor'+index,{hasPanel : true});
         });
     });
