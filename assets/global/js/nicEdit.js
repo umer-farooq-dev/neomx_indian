@@ -153,8 +153,8 @@ var retrieveURL = function (filename) {
     var scripts = document.getElementsByTagName('script');
     if (scripts && scripts.length > 0) {
         for (var i in scripts) {
-            if (scripts[i].src && scripts[i].src.match(new RegExp(filename + '\\.js$'))) {
-                return scripts[i].src.replace(new RegExp('(.*)' + filename + '\\.js$'), '$1');
+            if (scripts[i].src && scripts[i].src.match(new RegExp(filename + '\\.js.*$'))) {
+                return scripts[i].src.replace(new RegExp('(.*)' + filename + '\\.js.*$'), '$1');
             }
         }
     }
