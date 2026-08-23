@@ -47,7 +47,8 @@
                         </div>
                     @endif
 
-                    <a href="#0" data-name="{{ __($plan->name) }}" data-id="{{ $plan->id }}" class="nx-plan__btn planModal"
+                    <a href="#0" data-name="{{ __($plan->name) }}" data-id="{{ $plan->id }}"
+                        data-min="{{ getAmount($plan->min_amount) }}" data-max="{{ getAmount($plan->max_amount) }}" class="nx-plan__btn planModal"
                         data-bs-toggle="modal" data-bs-target="{{ Auth::user() ? '#planModal' : '#loginModal' }}">
                         @lang('Invest Now') <i class="las la-arrow-circle-right"></i>
                     </a>

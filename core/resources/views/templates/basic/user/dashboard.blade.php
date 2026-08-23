@@ -232,9 +232,9 @@
                     <div class="modal-body">
                         <p>
                             @if ($user->kyc_rejection_reason)
-                                @lang('Your KYC documents were rejected. Please resubmit your information to unlock investments and withdrawals.')
+                                @lang('Your KYC documents were rejected. Please resubmit your information — you will need it verified before you can withdraw.')
                             @else
-                                @lang('Please complete your KYC verification to unlock investments and withdrawals.')
+                                @lang('Complete your KYC verification whenever you are ready. It is only required before your first withdrawal.')
                             @endif
                         </p>
                     </div>

@@ -86,9 +86,7 @@ Route::middleware('auth')->name('user.')->group(function () {
                 //Plans
                 Route::get('/plans', 'plans')->name('plans');
 
-                Route::middleware('kyc')->group(function () {
-                    Route::post('/investment', 'investment')->name('investment');
-                });
+                Route::post('/investment', 'investment')->name('investment');
                 Route::get('/investment/log', 'investmentLog')->name('investment.log');
 
                 Route::get('referrals', 'referrals')->name('referrals');
@@ -126,9 +124,9 @@ Route::middleware('auth')->name('user.')->group(function () {
             });
         });
 
-        // Payment — a deposit opens the plan chosen on the form, so it sits
-        // behind the same KYC gate as investing directly from the wallet
-        Route::prefix('deposit')->name('deposit.')->controller('Gateway\PaymentController')->middleware('kyc')->group(function () {
+        // Payment — KYC is only enforced on withdrawals, so money can come in
+        // and be invested before the account is verified
+        Route::prefix('deposit')->name('deposit.')->controller('Gateway\PaymentController')->group(function () {
             Route::any('/', 'deposit')->name('index');
             Route::post('insert', 'depositInsert')->name('insert');
             Route::get('confirm', 'depositConfirm')->name('confirm');

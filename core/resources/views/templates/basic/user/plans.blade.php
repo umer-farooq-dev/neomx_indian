@@ -36,7 +36,8 @@
                                 - {{ gs('cur_sym') }}{{ showAmount($plan->max_amount, 0, currencyFormat: false) }}</b>
                         </div>
 
-                        <a href="#0" data-name="{{ __($plan->name) }}" data-id="{{ $plan->id }}" class="nxd-plan__btn planModal"
+                        <a href="#0" data-name="{{ __($plan->name) }}" data-id="{{ $plan->id }}"
+                        data-min="{{ getAmount($plan->min_amount) }}" data-max="{{ getAmount($plan->max_amount) }}" class="nxd-plan__btn planModal"
                             data-bs-toggle="modal" data-bs-target="{{ Auth::user() ? '#planModal' : '#loginModal' }}">
                             @lang('Invest Now') <i class="las la-arrow-circle-right"></i>
                         </a>
