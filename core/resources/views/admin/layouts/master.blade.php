@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ gs()->siteName($pageTitle ?? '') }}</title>
 
     <link rel="shortcut icon" type="image/png" href="{{siteFavicon()}}">
@@ -49,7 +50,12 @@
     bkLib.onDomLoaded(function() {
         $( ".nicEdit" ).each(function( index ) {
             $(this).attr("id","nicEditor"+index);
-            new nicEditor({fullPanel : true}).panelInstance('nicEditor'+index,{hasPanel : true});
+            // point the upload button at this site; left alone it targets imgur
+            // with a dead key and every upload is refused
+            new nicEditor({
+                fullPanel : true,
+                uploadURI : "{{ route('admin.editor.image.upload') }}"
+            }).panelInstance('nicEditor'+index,{hasPanel : true});
         });
     });
     (function($){

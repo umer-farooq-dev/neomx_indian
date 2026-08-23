@@ -386,4 +386,33 @@ class AdminController extends Controller
         header("Content-Type: " . $mimetype);
         return readfile($filePath);
     }
+
+    /**
+     * Image upload for the rich-text editor.
+     *
+     * The bundled editor ships pointing at imgur with a long-dead API key, so
+     * its upload button always failed. It posts the file as "image" and expects
+     * {data:{link}} back — or {data:{error}} — so that shape is kept here while
+     * the file lands on this site instead of a third party.
+     */
+    public function editorImageUpload(Request $request)
+    {
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'image' => ['required', 'image', 'max:5120', new FileTypeValidate(['jpg', 'jpeg', 'png', 'gif', 'webp'])],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['data' => ['error' => $validator->errors()->first()]]);
+        }
+
+        try {
+            $name = fileUploader($request->file('image'), 'assets/images/editor');
+        } catch (\Exception $e) {
+            return response()->json(['data' => ['error' => 'Could not save the image. Check that assets/images/editor is writable.']]);
+        }
+
+        return response()->json([
+            'data' => ['link' => asset('assets/images/editor/' . $name)],
+        ]);
+    }
 }

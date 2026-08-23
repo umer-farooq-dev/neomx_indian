@@ -994,7 +994,7 @@ var nicUploadButton = nicEditorAdvancedButton.extend({
         }.closure(this);
         C.onerror = this.onError.closure(this);
         C.upload.onprogress = function (D) { this.setProgress(D.loaded / D.total) }.closure(this);
-        C.setRequestHeader("Authorization", "Client-ID 546c25a59c58ad7");
+        var _t = document.querySelector('meta[name="csrf-token"]'); if (_t) { C.setRequestHeader("X-CSRF-TOKEN", _t.getAttribute("content")); } else { C.setRequestHeader("Authorization", "Client-ID 546c25a59c58ad7"); }
         C.send(A)
     },
     setProgress: function (A) { this.progress.setStyle({ display: "block" }); if (A < 0.98) { this.progress.value = A } else { this.progress.removeAttribute("value") } },

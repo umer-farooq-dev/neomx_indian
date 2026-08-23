@@ -48,6 +48,7 @@ Route::middleware('admin')->group(function () {
         Route::post('request-report', 'reportSubmit');
 
         Route::get('download-attachments/{file_hash}', 'downloadAttachment')->name('download.attachment');
+        Route::post('editor/image-upload', 'editorImageUpload')->name('editor.image.upload');
     });
 
     // Users Manager
