@@ -56,11 +56,11 @@
             // with a dead key and every upload is refused
             new nicEditor({
                 fullPanel : true,
-                {{-- protocol-relative, so the call always follows the page. A
-                     hard-coded http:// here (from APP_URL, or a proxy Laravel
-                     does not trust) is blocked as mixed content on an https site
-                     and the upload fails with nothing on screen. --}}
-                uploadURI : "{{ preg_replace('#^https?:#', '', route('admin.editor.image.upload')) }}"
+                {{-- Only the path comes from Laravel; the browser supplies the
+                     origin. APP_URL, or a proxy Laravel does not trust, can
+                     otherwise hand back a scheme that does not match the page,
+                     and the upload dies before it leaves the browser. --}}
+                uploadURI : window.location.origin + "{{ parse_url(route('admin.editor.image.upload'), PHP_URL_PATH) }}"
             }).panelInstance('nicEditor'+index,{hasPanel : true});
         });
     });
