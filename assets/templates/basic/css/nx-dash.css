@@ -829,3 +829,52 @@ body.nx-dash .input-group-text.bg--base {
     border: none;
     color: #04211c;
 }
+
+/* ---------------- manual deposit page ---------------- */
+/* color.php paints .custom--card with the brand colour; inside the panel it
+   should read like every other card here */
+body.nx-dash .custom--card {
+    border: 1px solid var(--nxd-line) !important;
+    border-radius: 16px;
+}
+
+/* color.php draws this divider in the brand colour with !important */
+body.nx-dash .card-header,
+body.nx-dash .card-header-bg,
+body.nx-dash .custom--card .card-header {
+    background: transparent !important;
+    border-bottom: 1px solid var(--nxd-line) !important;
+}
+
+body.nx-dash .alert-primary {
+    background: color-mix(in srgb, var(--nxd-blue) 14%, var(--nxd-surface-2)) !important;
+    border: 1px solid color-mix(in srgb, var(--nxd-blue) 35%, transparent) !important;
+    color: var(--nxd-text) !important;
+    border-radius: 12px;
+}
+
+body.nx-dash .alert-primary b,
+body.nx-dash .alert-primary strong {
+    color: var(--nxd-teal) !important;
+}
+
+/* The deposit instructions are written by the admin in the rich-text editor,
+   which saves dark body text. On this dark card that text was invisible, so the
+   colours are forced back to something readable while spacing is left alone. */
+body.nx-dash .gateway-instruction,
+body.nx-dash .gateway-instruction * {
+    color: var(--nxd-text) !important;
+    background: transparent !important;
+}
+
+body.nx-dash .gateway-instruction a {
+    color: var(--nxd-teal) !important;
+}
+
+body.nx-dash .gateway-instruction img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    background: #fff !important;   /* QR codes need a light ground to scan */
+    padding: 8px;
+}

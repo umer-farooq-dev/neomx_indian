@@ -18,7 +18,7 @@
                                             <b>{{showAmount($data['final_amount'],currencyFormat:false) .' '.$data['method_currency'] }} </b> @lang('for successful payment.')</p>
                                     </div>
 
-                                    <div class="mb-3">@php echo  $data->gateway->description @endphp</div>
+                                    <div class="mb-3 gateway-instruction">@php echo  $data->gateway->description @endphp</div>
 
                                 </div>
 

@@ -1421,3 +1421,12 @@ h1, h2, h3, h4, h5, h6,
     background-color: color-mix(in srgb, var(--brand) 18%, transparent) !important;
     color: var(--brand) !important;
 }
+
+/* ---------- dropdown options ----------
+   A phone draws the option list with the system sheet, which is white. The dark
+   theme leaves option text white too, so the list read as blank. Options get an
+   explicit light ground and dark text; the closed control keeps its own styling. */
+select option {
+    color: #111827;
+    background-color: #ffffff;
+}
