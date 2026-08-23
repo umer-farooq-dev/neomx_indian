@@ -408,7 +408,7 @@ class AdminController extends Controller
         try {
             $name = fileUploader($request->file('image'), 'assets/images/editor');
         } catch (\Exception $e) {
-            return response()->json(['data' => ['error' => 'Could not save the image. Check that assets/images/editor is writable.']]);
+            return response()->json(['data' => ['error' => 'Could not save the image: ' . $e->getMessage()]]);
         }
 
         return response()->json([

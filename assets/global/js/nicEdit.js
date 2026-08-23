@@ -660,12 +660,20 @@ nicEditors.registerPlugin(nicButtonTips);
 var nicEditorAdvancedButton = nicEditorButton.extend({
     init: function () { this.ne.addEvent("selected", this.removePane.closure(this)).addEvent("blur", this.removePane.closure(this)) },
     mouseClick: function () {
-        if (!this.isDisabled) {
-            if (this.pane && this.pane.pane) { this.removePane() } else {
-                this.pane = new nicEditorPane(this.contain, this.ne, { width: (this.width || "270px"), backgroundColor: "#fff" }, this);
-                this.addPane();
-                this.ne.selectedInstance.saveRng()
-            }
+        if (this.isDisabled) { return; }
+        // A pane hangs off the active editor. Pressing a toolbar button before
+        // ever clicking inside the text left selectedInstance null, so every
+        // advanced button (image, link, upload) threw and did nothing at all.
+        if (!this.ne.selectedInstance) {
+            var firstInstance = this.ne.nicInstances && this.ne.nicInstances[0];
+            if (!firstInstance) { return; }
+            try { firstInstance.elm.focus(); firstInstance.selected({}); } catch (e) {}
+            if (!this.ne.selectedInstance) { this.ne.selectedInstance = firstInstance; }
+        }
+        if (this.pane && this.pane.pane) { this.removePane() } else {
+            this.pane = new nicEditorPane(this.contain, this.ne, { width: (this.width || "270px"), backgroundColor: "#fff" }, this);
+            this.addPane();
+            this.ne.selectedInstance.saveRng()
         }
     },
     addForm: function (C, G) {
