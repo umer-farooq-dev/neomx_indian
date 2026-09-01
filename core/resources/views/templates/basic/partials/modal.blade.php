@@ -443,6 +443,17 @@
             // Firebase Phone Auth sends and checks the code itself, from the
             // browser. We prefer it when configured because Google is registered
             // on India's DLT platform, which a direct SMS gateway is not.
+            // grecaptcha binds itself to the container element and refuses to
+            // render into the same one twice — clear() alone does not release it.
+            // Swapping in a fresh element makes every retry a clean slate.
+            function freshRecaptchaHost(id) {
+                var existing = document.getElementById(id);
+                if (!existing) return;
+                var replacement = document.createElement('div');
+                replacement.id = id;
+                existing.parentNode.replaceChild(replacement, existing);
+            }
+
             const otpFirebaseConfig = @json(gs('firebase_config'));
             const useFirebaseOtp = !!(otpFirebaseConfig && otpFirebaseConfig.apiKey &&
                 otpFirebaseConfig.projectId && typeof firebase !== 'undefined' && firebase.auth);
@@ -455,6 +466,7 @@
                     firebase.initializeApp(otpFirebaseConfig);
                 }
                 if (!otpRecaptcha) {
+                    freshRecaptchaHost('otpRecaptcha');
                     otpRecaptcha = new firebase.auth.RecaptchaVerifier('otpRecaptcha', { size: 'invisible' });
                 }
                 return firebase.auth();
@@ -498,7 +510,7 @@
                         if (otpRecaptcha) {
                             try { otpRecaptcha.clear(); } catch (e) {}
                             otpRecaptcha = null;
-                            $('#otpRecaptcha').empty();
+                            freshRecaptchaHost('otpRecaptcha');
                         }
                         notify('error', err.message || 'Could not send the verification code');
                     });
@@ -774,8 +786,8 @@
                     if (regRecaptcha) {
                         try { regRecaptcha.clear(); } catch (e) {}
                         regRecaptcha = null;
-                        $('#regRecaptcha').empty();
                     }
+                    freshRecaptchaHost('regRecaptcha');
                 }
 
                 $form.on('submit', function(e) {
@@ -809,6 +821,7 @@
                                 firebase.initializeApp(otpFirebaseConfig);
                             }
                             if (!regRecaptcha) {
+                                freshRecaptchaHost('regRecaptcha');
                                 regRecaptcha = new firebase.auth.RecaptchaVerifier('regRecaptcha', { size: 'invisible' });
                             }
 
